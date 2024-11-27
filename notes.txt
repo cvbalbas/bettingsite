@@ -1,0 +1,97 @@
+1. Give diff options for colour
+2. Include only soccer_epl and region
+3. Same page; fewer pages, better
+4. Call oddschecker on the frontend
+5. 
+fetch('https://www.oddschecker.com/api/markets/v2/all-odds?market-ids='+marketId+'&repub=OC')
+. then (response => response. json())
+. then(data => printData(data))
+.catch(error => console.error('Error:', error));
+
+6. Each market has its own marketId
+7. 1x2 sould be shown by default
+8. Show all markets all at once when a match is clicked; show as a dropdown
+9. Update the oddscecker every minute
+10. Should look like they should be able to bet immediately, but when they place a bet, it'll ask you to signup or login
+11. Google signup
+12. Replace currency with coin or something that looks like it's just a game 💰.
+13. Have a disclaimer pop up for first time users:
+"This website is a fantasy betting platform designed for entertainment and educational purposes only. No real money is involved, and no actual financial transactions are taking place. The "bets" you make here use virtual currency, and any gains or losses are purely fictional. This platform does not offer any form of real-world gambling."
+"Accept or Decline"
+
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCf9SrtX38h3-90X48c_jm9BwRfcKKYpf4",
+  authDomain: "betting-site-1fd0c.firebaseapp.com",
+  projectId: "betting-site-1fd0c",
+  storageBucket: "betting-site-1fd0c.appspot.com",
+  messagingSenderId: "411445943688",
+  appId: "1:411445943688:web:bbaf9c1302a5a380706e3d",
+  measurementId: "G-V7D0GFXJ5Q"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+
+
+// LOGIN DRAFT
+import React from 'react'
+import './App.css';
+import { Link } from 'react-router-dom';
+import logo from './Logo.png'
+
+export default function Login() {
+  return (
+    <div className='pt-5 overflow-hidden' >
+        <Link to='/' className='w-330 m-auto d-block'><img src = {logo} /></Link>
+        <div className='bg-lightgreen mt-5 p-4 rounded text-start shadow w-330 m-auto'>
+            
+            <h3 className='title'>Sign in</h3>
+            <hr></hr>
+            <form action = "">
+                <div className='mb-3'>
+                    <label htmlFor='email' className = 'form-label text-lightgrey'>EMAIL</label>
+                    <input type='email' placeholder='' className='input rounded-2 bg-darkblue'/>
+                </div>
+                <div className='mb-3'>
+                    <label htmlFor='password' className = 'form-label text-lightgrey'>PASSWORD</label>
+                    <input type='password' placeholder='' className='input rounded-2 bg-darkblue'/>
+                </div>
+                <div className='d-grid gap-2'>
+                    <button className='btn btn-prim text-white fw-bold p-2'>Log in</button>
+                    <Link to='/register' className='btn border fw-bold text-white p-2 text-decoration-none'>Create Account</Link>
+                </div>
+            </form>
+        </div>
+    </div>
+  )
+}
+
+import { sendPasswordResetEmail } from "firebase/auth";
+
+const handleResetPassword = (email) => {
+  sendPasswordResetEmail(auth, email)
+    .then(() => {
+      alert('Password reset email sent! Go check your inbox 📬');
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+
+      if (errorCode === 'auth/user-not-found') {
+        alert('No account found with that email. Maybe sign up?');
+      } else {
+        alert(`Password reset failed: ${errorMessage}`);
+      }
+    });
+};
