@@ -1,0 +1,1060 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 14px !important;
+  background-color: #0E1D1D !important;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+body::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 5px;
+	background-color: #1F3D3D;
+}
+
+body::-webkit-scrollbar
+{
+	width: 5px;
+	background-color: #1F3D3D;
+}
+
+body::-webkit-scrollbar-thumb
+{
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #0E1D1D;
+}
+
+.bg-darkgreen {
+  background-color: #142828 !important;
+}
+.bg-green {
+  background-color: #1F3D3D !important;
+}
+.bg-lightgreen {
+  background-color: #346565 !important;
+}
+.bg-orange {
+  background-color: #FF8135 !important;
+}
+.bg-darkblue {
+  background-color: #141428 !important;
+}
+.bg-lightgrey {
+  background-color: #CACACA !important;
+}
+.bg-darkgrey {
+  background-color: #282828 !important;
+}
+.bg-grey {
+  background-color: #D9D9D9 !important;
+}
+.bg-black {
+  background-color: #141414 !important;
+}
+
+.text-lightgrey {
+  color: #CACACA;
+}
+.text-darkgrey {
+  color: #282828;
+}
+.text-grey {
+  color: #D9D9D9;
+}
+.text-orange {
+  color: #FF8135;
+}
+.text-blue {
+  color: #141428;
+}
+.text-red {
+  color: #DC3545;
+}
+.text-green {
+  color: #2aec92;
+}
+.text-white {
+  color: white !important;
+}
+
+.logo-bar {
+  height: 58px;
+}
+
+.loadingSpinner {
+  margin-top: 30vh !important;
+}
+label {
+  font-size: 12px;
+  font-weight: bold;
+}
+h1 {
+  font-size: 20px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: bold !important;
+}
+.font-12 {
+  font-size: 12px;
+}
+.font-15 {
+  font-size: 15px;
+}
+.font-18 {
+  font-size: 18px;
+}
+.font-20 {
+  font-size: 20px;
+}
+
+.date {
+  font-size: 12px;
+  font-weight: bold;
+}
+.shadow-box {
+  box-shadow: -2px 2px 5px #0E1D1D;
+}
+.shadow-down{
+  box-shadow: 2px 2px 5px #0E1D1D;
+}
+.shadow-left {
+  box-shadow: -2px 2px 5px #0E1D1D;
+}
+.w-330 {
+  width: 330px;
+}
+.team-logo {
+  width: 20px;
+  margin-right: 5px;
+}
+
+
+
+.odds {
+  width: 30%; 
+  background-color: #141428;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
+.odds:hover{
+  background-color:#1e1e3d;
+  cursor: pointer;
+}
+.odds:active{
+  background-color:#ff7520;
+  cursor: pointer;
+}
+.odds:active .teamName{
+  color:#141428;
+}
+.odds:active .teamOdds{
+  color:#FFF;
+}
+
+.oddsClicked {
+  background-color:#FF8135;
+  width: 30%; 
+  transition-duration: 100ms;
+}
+.oddsClicked:hover{
+  background-color:#ff7520;
+  cursor: pointer;
+}
+.oddsClicked:active{
+  background-color:#1e1e3d;
+  cursor: pointer;
+}
+
+
+.teamNameClicked {
+  color:#141428;
+  font-weight: bold;
+}
+.teamOddsClicked {
+  color:#FFF;
+  font-weight: bold;
+}
+.odds-content {
+  white-space: nowrap; 
+  width: 100%; 
+  overflow: hidden;
+  text-overflow: ellipsis !important;
+}
+.odds-container {
+  width: 60%;
+}
+.teamName {
+  color: white;
+}
+.teamOdds {
+  color:#FF8135;
+  font-weight: bold;
+}
+
+.input {
+  background-color: transparent;
+  border: none;
+  padding: 10px;
+  display: block;
+  width: 100%;
+  color: white;
+}
+
+
+input:focus {
+  outline-color: transparent;
+  outline-style: inset;
+  outline-width: 2px;
+}
+
+.toggle {
+  position: relative;
+  right: -5px;
+}
+
+.searchgroup-text {
+  background-color: transparent;
+  border-radius: 5px 0px 0px 5px;
+  padding-left: 8px;
+  padding-right: 5px;
+  padding-top: 5px;
+  color: #CACACA;
+  height: 34px;
+  display: inline-block;
+}
+.search {
+  width: 100%;
+  background-color: transparent;
+  color:white;
+  border: none;
+  padding: 6.5px;
+  border-radius: 0px 5px 5px 0px;
+}
+.searchMarket {
+  width: 100%;
+  border: 1px solid transparent;
+  margin-bottom: 0px !important;
+  transition-duration: 300ms;
+}
+.searchMarket-text {
+  background-color: transparent;
+  border-radius: 5px 0px 0px 5px;
+  padding-left: 8px;
+  padding-right: 5px;
+  padding-top: 5px;
+  color: #CACACA;
+  height: 34px;
+  display: inline-block;
+}
+.search2 {
+  width: calc(100% - 30px);
+  background-color: transparent;
+  color:white;
+  border: none;
+  padding: 6.5px;
+  border-radius: 0px 5px 5px 0px;
+}
+.searchMarket:hover {
+  border: 1px solid #346565;
+}
+::placeholder {
+  color: #CACACA;
+  opacity: 1; /* Firefox */
+  font-size: 12px;
+}
+.border {
+  transition-duration: 300ms;
+}
+.border:hover {
+  background-color: #ebebeb !important;
+  color:#FF8135 !important;
+}
+.btn-prim {
+  background-color: #FF8135 !important;
+  transition-duration: 300ms;
+}
+.btn-prim:hover {
+  background-color: #f36c18 !important;
+}
+
+.title {
+  font-size: 20px;
+  color:#ebebeb;
+  font-weight: bolder;
+}
+
+.top-nav {
+  height: 15px;
+  border-bottom: solid 1px #142828;
+  width:100%;
+}
+
+.bot-nav {
+  height: 55px;
+}
+
+.logo {
+  height: 25px;
+}
+
+.home {
+  padding-top: 35px;
+  position:relative;
+  top: -91px;
+  width: calc(100vw - 350px);
+
+}
+.homesmall {
+  padding-top: 35px;
+  position:relative;
+  top: -91px;
+  width: calc(100vw - 200px);
+
+}
+.animate {
+  position: relative;
+  top: -91px;
+  width: 0px;
+  transform: translateX(310px);
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+.close {
+  width: 0px;
+  transform: translateX(310px)
+}
+
+.open {
+  width: 300px;
+  transform: translateX(0px)
+}
+.balance {
+  color: #D9D9D9;
+  transition-duration: 300ms;
+}
+.balance:hover {
+  color: #f36c18;
+}
+.navbar {
+  width: calc(100vw - 330px);
+}
+.navbarsmall {
+  width: calc(100vw - 200px);
+}
+.match-list {
+  height: calc(100vh - 220px);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+.match-list::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 5px;
+	background-color: transparent;
+  position:relative;
+  left: -10px;
+}
+
+.match-list::-webkit-scrollbar
+{
+	width: 5px;
+  border-radius: 5px;
+	background-color: transparent;
+}
+
+.match-list::-webkit-scrollbar-thumb
+{
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #0E1D1D;
+}
+.bets-float {
+  position: relative;
+  top: -92px;
+  right:0px;
+  width: 300px;
+}
+.bets-container {
+  position: fixed;
+  top: 0px;
+  right:0px;
+  height: calc(100vh + 92px);
+  width: 300px
+}
+.empty {
+  width: 75%;
+}
+.bets-list {
+  height: calc(100vh - 292px);
+  overflow-y: auto;
+}
+
+.bets-list::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 5px;
+	background-color: #1F3D3D;
+}
+
+.bets-list::-webkit-scrollbar
+{
+	width: 5px;
+	background-color: #1F3D3D;
+}
+
+.bets-list::-webkit-scrollbar-thumb
+{
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #0E1D1D;
+}
+.top-nav-bets {
+  height:35px;
+  border-bottom: solid 1px #346565;
+}
+
+.bot-nav-bets {
+  height: 55px;
+  color:#ebebeb;
+  font-size: 20px;
+  font-weight: bold;
+  padding-left: 20px
+}
+.bot-nav-bets svg {
+
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+}
+
+.selected-bet {
+  color:#D9D9D9;
+  border-top: solid 1px #346565;
+  border-bottom: solid 1px #346565;
+}
+.animate-bet {
+  animation: fadeIn 0.3s ease; /* 0.5s for fade-in, ease timing function */
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.mouse-pointer {
+  cursor: pointer;
+}
+.matchName {
+  color:#CACACA;
+  font-size: 12px;
+  width: 70%;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-weight: bold;
+}
+
+.inputBet {
+  width: 100%;
+  display: inline-block;
+  border-start-start-radius: 5px;
+  border-end-start-radius: 5px;
+}
+.currency {
+  background-color: transparent;
+  display: inline-block;
+  padding: 10px;
+  position: relative;
+  top: 0px;
+  font-size: 12px;
+  border-end-end-radius: 5px;
+  border-start-end-radius: 5px;
+}
+.currencyImg {
+  height: 20px;
+  margin-left: 10px;
+}
+.matchdiv {
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.totalBets {
+  height: 2550px;
+  background-color: #0E1D1D;
+}
+.placebet {
+  /* bg-orange rounded py-2 fw-bold text-white  */
+  background-color: #FF8135;
+  border-radius: 5px;
+  font-weight: bold;
+  color: white;
+  padding: 10px;
+  margin-top: 5px;
+}
+.placebet:hover {
+  background-color:#f36c18;
+
+}
+.hide-modal {
+  display:none;
+}
+.show-modal {
+  display: block;
+}
+.chevron {
+  transition-duration: 300ms;
+  color:#346565;
+}
+.chevronbox {
+  border: 1px transparent solid;
+}
+.chevronbox:hover .chevron {
+  color:#CACACA
+}
+/* .matchdiv:hover {
+  background: rgb(31,61,61);
+  background: linear-gradient(180deg, rgba(31,61,61,1) 44%, rgba(52,101,101,1) 92%);
+} */
+/* .matchdiv {
+  padding: 20px;
+  transition-duration: 300ms;
+  background: transparent;
+} */
+.drop {
+  background-color: transparent !important;
+  width: 100%;
+  text-align: left !important;
+  border-radius: 0px !important;
+  transition-duration: 300ms;
+}
+.drop:hover {
+  border: 1px #346565 solid !important;
+}
+
+.marketBets {
+  color:#D9D9D9;
+  border: 1px transparent solid;
+  padding: 5px 30px !important;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  transition-duration: 300ms;
+}
+.marketBetContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0px 5px;
+  box-sizing: border-box;  
+}
+.marketBets:has(.marketClicked) {
+  background-color: #346565;
+}
+.marketBets:has(.market) {
+  background-color: transparent;
+}
+
+.marketBets:hover {
+  border: 1px #346565 solid;
+}
+.marketBets:active {
+  border: 1px #ffffff solid;
+}
+
+.marketBets:hover .betsOdds{
+  color:#ffffff;
+}
+.betsOdds {
+  font-weight: bold;
+  background-color: #141428;
+  width: 65px;
+  padding: 2px;
+  text-align: center;
+  border-radius: 5px;
+  transition-duration: 300ms;
+}
+
+.marketClicked .betsName{
+  font-weight: bold;
+}
+.marketClicked .betsOdds{
+  color: white;
+}
+
+.market .betsName{
+  font-weight: normal;
+}
+.market .betsOdds{
+  color: #ff7520;;
+}
+.collapseContent {
+  border: 1px #346565 solid;
+  border-top: none;
+}
+.match {
+  border-bottom: 1px #346565 solid;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+svg path {
+  transition-duration: 300ms;
+}
+svg:hover path {
+  fill: white; /* Change to the desired hover color */
+}
+.neg-margin {
+  margin-left: -5px;
+}
+.dropdown-toggle::after { 
+  content: none !important; 
+} 
+.dropdown-toggle {
+  width: 50px;
+}
+.btn.show {
+  border-color: transparent;
+}
+.btn {
+  border-color: transparent !important;
+}
+.border {
+  border: 1px white solid !important;
+}
+.dropdown-menu {
+  min-width: 120px !important;
+}
+.dropdown-menu .dropdown-item.active {
+  background-color: #346565 !important;
+}
+.dropdown-menu .dropdown-item {
+  transition-duration: 300ms;
+}
+.dropdown-menu .dropdown-item:hover {
+  background-color: #346565 !important;
+  color: white;
+}
+.dropdown-item:active, 
+.dropdown-item:focus {
+  background-color: #346565 !important; 
+}
+.matchMargin {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+.changePw {
+  text-align: left;
+}
+.showHide {
+  background-color: transparent;
+  font-size: smaller;
+  width: 80px;
+  border-radius: 0px;
+  padding: 9px;
+  border: 1px solid transparent
+}
+.showHide:hover {
+  background-color: #346565 !important;
+}
+.switch {
+  background-color: #224343;
+  border-radius: 5px;
+  width: 300px;
+}
+.account, .wallet { 
+  background-color: transparent;
+  color:#CACACA;
+  border-radius: 5px;
+  transition-duration: 200ms;
+  font-weight: bold;
+  width: 143px;
+}
+.account:hover, .wallet:hover {
+  background-color: #346565;
+  color: white
+}
+
+.accountInput {
+  background-color: #141428 !important;
+  border-color: #141428 !important;
+  color: white;
+}
+.editPass {
+  margin-top: -5px;
+  color: white !important;
+}
+.editPass:hover {
+  color: #ff7520 !important;
+}
+.editPass svg:hover path {
+  fill: #ff7520; /* Change to the desired hover color */
+}
+.addCoins {
+  margin-top: -5px;
+  color: white !important;
+}
+.addCoins:hover {
+  color: #ff7520 !important;
+}
+.addCoins svg:hover path {
+  fill: #ff7520; /* Change to the desired hover color */
+}
+.transactions {
+  background-color: #1F3D3D !important;
+  color: white;
+  width: 100%;
+  border-radius: 5px;
+}
+.balanceInput .inputDiv {
+  border-radius: 5px 0px 0px 5px;
+  background-color: #141428;
+}
+.balanceInput div {
+  width: 100%;
+  text-align: right;
+}
+.balanceInput .currency {
+  border-radius: 0px 5px 5px 0px;
+  background-color: #141428;
+}
+
+.form-control {
+  font-size: 15px !important;
+}
+
+.tableWrap {
+  max-height: 58vh;
+  overflow-y: auto;
+  border-radius: 5px;
+
+}
+.tableWrap::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 5px;
+	background-color: #1F3D3D;
+}
+
+.tableWrap::-webkit-scrollbar
+{
+	width: 5px;
+	background-color: #1F3D3D;
+}
+
+.tableWrap::-webkit-scrollbar-thumb
+{
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #0E1D1D;
+}
+/* Set header to stick to the top of the container. */
+.transactions thead tr th {
+  position: sticky;
+  top: 0;
+}
+
+/* If we use border,
+we must use table-collapse to avoid
+a slight movement of the header row */
+.transactions {
+ border-collapse: collapse;
+}
+
+.transactions td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #346565;
+}
+.transactions th {
+  padding: 10px 10px;
+  border-bottom: 1px solid #346565;
+  background-color: #274e4e;
+
+}
+.transactions tr {
+  transition-duration: 300ms;
+}
+.transactions tr:hover {
+  background-color: #346565;
+}
+.transactions td:nth-child(2){
+  text-transform: uppercase;
+}
+.transactions td:nth-child(1){
+  font-size: x-small;
+}
+.transactions .badge {
+  width: 14px !important;
+}
+.badges {
+  padding: 0px !important;
+}
+.key .badge {
+  margin-left: 10px;
+  top: -2px;
+  position: relative;
+}
+.table-fit {
+  width: auto !important;
+  table-layout: auto !important; /* Adjust column width based on content */
+  max-width: 100% !important; /* Fit within the viewport width */
+  white-space: nowrap !important; /* Prevent text wrapping */
+}
+
+.selectDiv button {
+  width: 120px;
+}
+.select {
+  background-color: #346565;
+  color: #ebebeb;
+  padding: 8px 12px;
+  border:none;
+  border-radius: 5px;
+}
+.select:hover {
+  background-color: #346565;
+  color: white;
+}
+.select:hover {
+  background-color: #346565;
+  color: white;
+}
+.alertsBox {
+  position: absolute;
+  bottom: 5vh;
+  right: 5px;
+}
+.alert-fade-in {
+  animation: fadeIn 0.3s forwards;
+}
+
+.alert-fade-out {
+  animation: fadeOut 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.pricing {
+  margin-top: 10px;
+}
+.pricing td:first-child{
+  width: 20px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.basic {
+  border: 2px #D9D9D9 solid
+}
+@media only screen and (max-width: 992px) { /*smaller than desktop =TABLET*/
+  .odds-container {
+    width: 100%;
+    margin-top: 10px
+  }
+  .matchdiv {
+    display: block;
+  }
+  .marketBets {
+    padding: 5px 10px !important;
+  }
+  .matchMargin {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .changePw {
+    text-align: right;
+  }
+}
+
+@media only screen and (max-width: 768px) { /*smaller than tablet =MOBILE*/
+  body {
+    font-size: 12px !important;
+  }
+  
+  .search {
+    padding: 8px;
+  }
+  .marketBets {
+    padding: 5px 15px !important;
+  }
+  .homesmall {
+    width: calc(100vw - 50px);
+  }
+  .home {
+    display: none;
+  }
+  .search {
+    width: 100%;
+  }
+  h1 {
+    font-size: 18px !important;
+  }
+
+
+  .animate {
+    position: relative;
+    top: -91px;
+    width: 0vw;
+    transform: translateX(100vw);
+    transition: transform 0.3s ease;
+  }
+  .close {
+    width: 0vw;
+    transform: translateX(100vw)
+  }
+  .open {
+    width: 100vw;
+    transform: translateX(0)
+  }
+  .bets-float {
+    width: 100vw;
+  }
+  .bets-container {
+    width: 100vw
+  }
+  .matchMargin {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .changePw {
+    text-align: right;
+  }
+}
+
+@media only screen and (max-width: 576px) { /*XS ---------------------------*/
+  body {
+    font-size: 3vw !important;
+  }
+  .searchgroup {
+    font-size: 10px;
+  }
+  .search::placeholder {
+    font-size: 10px;
+  }
+  .searchgroup-text {
+    padding-top: 7px;
+    height: 31px;
+    padding-right: 0px;
+  }
+
+  .font-12 {
+    font-size: 2.8vw;
+  }
+  .font-15 {
+    font-size: 3.3vw;
+  }
+  .font-18 {
+    font-size: 14px;
+  }
+  .font-20 {
+    font-size: 16px;
+  }
+  .btn {
+    font-size: 3vw !important;
+  };
+
+  h1 {
+    font-size: 3.7vw !important;
+  }
+  .date {
+    font-size: 2.8vw;
+  }
+  .mt-5 {
+    margin-top: 1.5rem !important;
+  }
+  .mb-3 {
+    margin-bottom: 0.5rem !important;
+  }
+  .top-nav {
+    height: 0px;
+    border-bottom: solid 1px #142828;
+    width:100%;
+  }
+  
+  .bot-nav {
+    height: 55px;
+  }
+  
+  .logo {
+    height: 15px;
+  }
+  .me-5 {
+    margin-right: 1rem !important;
+  }
+  .logo-bar svg {
+    height: 18px;
+  }
+  .ps-4 {
+    padding-left: 1rem !important;
+  }
+  .pt-3 {
+    padding-top: 0.7rem !important;
+  }
+  .homesmall {
+    width: calc(100vw - 10px);
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .match {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .match-list {
+    height: calc(100vh - 200px);
+  }
+  .drop {
+    font-size: 3.5vw;
+  }
+  .bot-nav-bets svg {
+    height: 18px;
+  }
+  .bot-nav-bets {
+    font-size: 14px;
+  }
+  .bets-list {
+    height: calc(100vh - 260px);
+    overflow-y: auto;
+  }
+  .input {
+    font-size: 3vw;
+  }
+  .form-control {
+    font-size: 3vw !important;
+  }
+  .p-3 {
+    padding: 0.7rem !important;
+  }
+  .transactions {
+    font-size: 10px;
+  }
+  .currencyImg {
+    height: 15px;
+  }
+  .currency {
+    padding: 8px;
+  }
+}
