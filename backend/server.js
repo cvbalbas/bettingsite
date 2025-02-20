@@ -78,6 +78,7 @@ function executeQuery(query, values) {
   });
 }
 
+//Save bets into bets_list and bets_wallet_transactions and update wallet_balance
 app.post('/api/save-odds', async (req, res) => {
   const { selectedOdds, betAmounts, user } = req.body;
 
@@ -155,6 +156,7 @@ app.post('/api/save-odds', async (req, res) => {
   }
 });
 
+//Get current user's wallet_balance, role
 app.post('/api/user-info', async (req, res) => {
 
   const { currentUser } = req.body;
@@ -177,6 +179,7 @@ app.post('/api/user-info', async (req, res) => {
   }
 });
 
+//Save new User to DB
 app.post('/api/save-user', async (req, res) => {
   const { currentUser } = req.body;
   // console.log(currentUser)
@@ -206,6 +209,7 @@ app.post('/api/save-user', async (req, res) => {
   }
 });
 
+//For Testing Only
 app.get('/api/savedmarkets', async (req, res) => {
   const filePath = path.join(__dirname, 'ipswichcrystal-leicesterwestam.json');
 
@@ -221,6 +225,7 @@ app.get('/api/savedmarkets', async (req, res) => {
   });
 });
 
+//For Testing Only
 app.get('/api/savedmatches', async (req, res) => {
   const filePath = path.join(__dirname, 'the-odds-api.json');
 
@@ -236,7 +241,7 @@ app.get('/api/savedmatches', async (req, res) => {
   });
 });
 
-
+//Get all transaction of current user
 app.post('/api/transactions', async(req, res) => {
 
   const { user } = req.body;
@@ -264,15 +269,16 @@ app.post('/api/transactions', async(req, res) => {
       // console.log(userResults)
     // Commit the transaction if all operations succeed
     await executeQuery('COMMIT');
-    res.status(200).json({ message: 'wallet balance retrieved', results: userResults });
+    res.status(200).json({ message: 'transactions retrieved', results: userResults });
 
   } catch (error) {
     // Roll back the transaction if any operation fails
     await executeQuery('ROLLBACK');
-    res.status(500).json({ error: 'Error retrieving wallet balance', details: error.message });
+    res.status(500).json({ error: 'Error retrieving transactions', details: error.message });
   }
 });
 
+//Get bets history of current user
 app.post('/api/bets-history', async(req, res) => {
 
   const { user } = req.body;
@@ -313,6 +319,7 @@ app.post('/api/bets-history', async(req, res) => {
   }
 });
 
+//Update betsusers table, set premiumTrial status and expiry date
 app.post('/api/upgradePremiumTrial', async (req, res) => {
   const currentUser = req.body.currentUser;
   const expiresAt = req.body.expiresAt;
@@ -344,6 +351,7 @@ app.post('/api/upgradePremiumTrial', async (req, res) => {
   }
 });
 
+//Update betsusers table, set premium status
 app.post('/api/upgradePremium', async (req, res) => {
   const currentUser = req.body.currentUser;
   // console.log(currentUser)
@@ -378,6 +386,7 @@ const stripe = require('stripe')('sk_test_51QLxcmGU6rDR9xUo8WuFxecAkNgeUhHeJ1Hk4
 
 const YOUR_DOMAIN = 'http://localhost:3000'; // Update to your frontend domain
 
+//Payment for Premium
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -404,6 +413,7 @@ app.post('/create-checkout-session', async (req, res) => {
 
 app.listen(4242, () => console.log('Running on port 4242'));
 
+//Verify Payments so they won't repeat
 app.post('/api/verify-payment', async (req, res) => {
   const { sessionId, uid } = req.body; // Include `uid` from the client-side request
 
@@ -526,7 +536,7 @@ app.post('/api/verify-payment', async (req, res) => {
   }
 });
 
-
+//Payment for Coins
 app.post('/create-checkout-session-coins', async (req, res) => {
   const { quantity } = req.body; // Get quantity from frontend
   console.log(quantity)
@@ -553,7 +563,7 @@ app.post('/create-checkout-session-coins', async (req, res) => {
   res.json({ url: session.url });
 });
 
-
+//For Testing Only
 app.post('/api/save-data', async (req, res) => {
   const groupedMatches = req.body;
 
@@ -602,6 +612,7 @@ app.post('/api/save-data', async (req, res) => {
   }
 });
 
+//For Testing Only
 app.post('/api/save-markets', async (req, res) => {
   const filePath = path.join(__dirname, 'ipswichcrystal-leicesterwestam.json');
 
@@ -664,6 +675,7 @@ app.post('/api/save-markets', async (req, res) => {
  
 });
 
+//For Testing Only
 // app.get('/api/matches-with-markets', async (req, res) => {
 //   try {
 //     const query = `
@@ -800,8 +812,7 @@ app.post('/api/save-markets', async (req, res) => {
 //   }
 // });
 
-
-
+//Fetch Pending Bets for Admin
 app.get('/api/pending-bets', async (req, res) => {
   try {
       const query = `
@@ -839,6 +850,7 @@ app.get('/api/pending-bets', async (req, res) => {
   }
 });
 
+//Save Match Results from Admin
 app.post('/api/update-bet-results', async (req, res) => {
   const { match_day, time, fixture, bet_market, winningBets } = req.body;
 
@@ -986,7 +998,7 @@ app.post('/api/update-bet-results', async (req, res) => {
   }
 });
 
-
+//Get Notifications
 app.get('/api/notifications/:uid', async (req, res) => {
   const { uid } = req.params;
   try {
@@ -1001,7 +1013,7 @@ app.get('/api/notifications/:uid', async (req, res) => {
   }
 });
 
-
+//Update Read Status for Notifications
 app.post('/api/mark-notifications-read', async (req, res) => {
   const { uid } = req.body;
   try {

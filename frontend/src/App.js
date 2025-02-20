@@ -115,58 +115,8 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // useEffect(() => {
-    
-  //   const fetchUserData = async (currentUser) => {
-  //     // console.log(currentUser)
-  //     try {
-  //       const response = await fetch('/api/user-info', {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify({currentUser}),
-  //       });
-  //       const data = await response.json();
-  //       setWalletBalance(data.results[0]["wallet_balance"])
-  //       setRole(data.results[0]["admin"])
-  //       setIsPremium({
-  //         isPremium: Boolean(data.results[0]["isPremium"]),
-  //         isPremiumTrial: Boolean(data.results[0]["isPremiumTrial"]),
-  //         trialExpiresAt: data.results[0]["trialExpiresAt"],
-  //       })
-  //       console.log('User Info:', data);
-  //     } catch (error) {
-  //       console.error('Error getting wallet balance:', error);
-  //     }
-  //   };
-
-  //   const auth = getAuth(); // Initialize the Firebase auth
-  //   const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-  //     if (currentUser) {
-  //       setUser(currentUser); // Set the logged-in user
-  //       console.log(currentUser)
-  //       fetchUserData(currentUser)
-        
-  //     } else {
-  //       setUser(null); // Clear user state if logged out
-  //     }
-  //     setLoading(false)
-  //   });
-    // console.log(user)
-  //   console.log(walletBalance)
-  //   console.log(role)
-
-
-  //   // Cleanup the listener on component unmount
-  //   return () => unsubscribe();
-
-  
-
-  // }, [user, role, walletBalance]);
-
-
   // Update localStorage whenever selectedOdds changes
+  
   useEffect(() => {
     // console.log(selectedOdds)
     localStorage.setItem('selectedOdds', JSON.stringify(selectedOdds));
@@ -215,13 +165,11 @@ function App() {
   const openPremiumModal = () => setPremiumModal(true);
   const closePremiumModal = () => setPremiumModal(false);
 
-  // const [checkoutPremium, setCheckoutPremium] = useState(false)
-  // const openCheckoutPremiumModal = () => setCheckoutPremium(true);
-  // const closeCheckoutPremiumModal = () => setCheckoutPremium(false);
-
   const [addCoinsModal, setAddCoinsModal] = useState(false)
   const openAddCoinsModal = () => setAddCoinsModal(true);
   const closeAddCoinsModal = () => setAddCoinsModal(false);
+
+  
   return (
     <div>
       <div className='top-nav bg-black'></div>
@@ -230,7 +178,6 @@ function App() {
       <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} setWalletBalance={setWalletBalance} phoneSetUp={phoneSetUp}/>
       <Disclaimer showModal={disclaimerOpen} closeModal={closeDisclaimerModal} user = {user} setUser = {setUser}/>
       <PremiumModal showModal={premiumModal} closeModal={closePremiumModal} user = {user} isPremium={isPremium} setIsPremium={setIsPremium} />
-      {/* <CheckoutPremium showModal={checkoutPremium} closeModal={closeCheckoutPremiumModal} user = {user} isPremium={isPremium} setIsPremium={setIsPremium} /> */}
       <AddCoinsModal showModal={addCoinsModal} closeModal={closeAddCoinsModal} user = {user} setCoinsToAdd={setCoinsToAdd}/>
 
 
@@ -239,11 +186,6 @@ function App() {
         <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} />
         <BrowserRouter>
           <Routes>
-            {/* <Route path = '/' element={
-              role ? <AdminDashboard user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass}/>
-              : <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass}/>
-              }>
-            </Route> */}
             <Route path = '/' element={
               <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass}/>
               }>

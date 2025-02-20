@@ -6,11 +6,11 @@ import empty from "../images/Empty.png"
 
 export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass}) {
 
-  useEffect(() => {
+  // useEffect(() => {
     
-    // console.log(selectedOdds)
-    // console.log(betAmounts)
-  }, [selectedOdds, betAmounts]);
+  //   // console.log(selectedOdds)
+  //   // console.log(betAmounts)
+  // }, [selectedOdds, betAmounts]);
 
 
   const handleBetAmountChange = (bet, value) => {

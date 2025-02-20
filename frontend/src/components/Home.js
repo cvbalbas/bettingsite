@@ -49,10 +49,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     }
   }, [notif]);
 
-    useEffect(() => {
+    // useEffect(() => {
       
-      // console.log(markets)
-    }, [markets]);
+    //   // console.log(markets)
+    // }, [markets]);
 
 
   useEffect(() => {
@@ -73,6 +73,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     // console.log(openMarkets)
     // console.log(matches)
   }, [isPremium, user, markets, matches, loadedMatches, openMarkets])
+
+  
   useEffect(() => {
     const fetchOdds = async () => {
       // console.log("fetch")
@@ -117,22 +119,6 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
     // // Cleanup interval on unmount
     return () => clearInterval(intervalId);
-
-    // const auth = getAuth(); // Initialize the Firebase auth
-    // const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    //   if (currentUser) {
-    //     setUser(currentUser); // Set the logged-in user
-    //     // // console.log(currentUser)
-        
-    //   } else {
-    //     setUser(null); // Clear user state if logged out
-    //   }
-    //   setLoading(false)
-    // });
-    
-    // // Cleanup the listener on component unmount
-    // return () => unsubscribe();
-
     
   }, []);
 
@@ -143,6 +129,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       [id]: !prevState[id], // Toggle open/close for the specific div
     }));
   };
+
+
   // Generate image path based on team name
   const getImagePath = (teamName) => {
     const formattedName = teamName.replace(/ /g, '_'); // replace spaces
@@ -205,7 +193,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     // // })
     //-----End Testing------
 
-    // // console.log(marketIDsForMatch)
+    // console.log(marketIDsForMatch)
+
     matches.forEach(match => {
       // // console.log(match.teams)
       const matchDate = formatDate(match.commence_time); // Get readable date
@@ -366,6 +355,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         default:
           break
       }
+
+
       // console.log(fixture)
       // // console.log(JSON.stringify(marketIDs))
       const marketIDsForMatch = marketIDs.filter((market) => market.fixture === fixture).map((market) => market.marketId)
@@ -393,6 +384,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       });
     });
 
+    // For Testing Only
     // const saveMatches = async (groupedMatches) => {
     //   try {
     //     const response = await fetch('/api/save-data', {
@@ -411,6 +403,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     //   }
     // }
     // saveMatches(groupedMatches)
+
     return groupedMatches;
   };
 
@@ -472,6 +465,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     // console.log(notif)
   };
 
+  //Update Markets Odds every 10 mins
   useEffect(() => {
     
     const fetchMarketsRepeat = async () => {
@@ -609,6 +603,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         
         //----- End Testing ----
 
+        // For Testing Only
         // const saveMarkets = async (markets) => {
         //   // console.log("marketSave")
         //   try {
@@ -638,11 +633,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
     }  
   }
-  // const handleClearAllBets = () => {
-  //   setSelectedOdds([]); // Clear all selected bets
-  //   setBetAmounts({});   // Reset all bet amounts
-  //   setEstimatedPayouts({}); // Reset all estimated payouts
-  // };
+
   let [percentOdds, setPercentOdds] = useState(false);
 
   const onPercentOddsChange = (checked) => {
@@ -667,25 +658,16 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     }
   };
 
-  useEffect(() => {
-    // console.log(percentOdds)
-  }, [percentOdds])
+  // useEffect(() => {
+  //   // console.log(percentOdds)
+  // }, [percentOdds])
 
 
 
 
 
   return (
-    // <div>
-    //   <LoginModal showModal={loginModalOpen} closeModal={closeLoginModal} user = {user} setUser = {setUser} setSignupModalOpen={setSignupModalOpen} />
-    //   <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} />
-    //   <Disclaimer showModal={disclaimerOpen} closeModal={closeDisclaimerModal} user = {user} setUser = {setUser}/>
-
-
-    // <div className="App d-flex">
-    //   <div className={`m-auto ${betsOpen ? 'home':'homesmall'}`}>
-    //   <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} />
-      <div>
+    <div>
       <div className='col-lg-10 col-sm-12 m-auto'>
         <div className='alertsBox'>
           {showAlert && (
@@ -958,11 +940,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           
         </div>      
       </div>
-      </div>
-   
-      
-      
-   
+    </div>
   );
 }
 

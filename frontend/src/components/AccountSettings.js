@@ -72,7 +72,7 @@ export default function AccountSettings({user, walletBalance, setWalletBalance, 
           } 
           if(data.coinsAdded){
             var curWalletBalance = localStorage.getItem("walletBalance")
-            setWalletBalance(curWalletBalance*1 + data.coinsAdded*1)
+            setWalletBalance((curWalletBalance*1 + data.coinsAdded*1).toFixed(2))
           }
         } else {
           setOrder("failed")

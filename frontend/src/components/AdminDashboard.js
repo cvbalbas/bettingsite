@@ -7,9 +7,13 @@ export default function PendingBetsAdmin( {user, setUser} ) {
   const [searchTerm, setSearchTerm] = useState("");
   const [savedMarkets, setSavedMarkets] = useState({});
   const navigate = useNavigate();
+
+
   useEffect(() => {
     console.log(user)
   }, [user, navigate])
+
+
   useEffect(() => {
       const fetchPendingBets = async () => {
           try {
@@ -132,8 +136,6 @@ export default function PendingBetsAdmin( {user, setUser} ) {
     return (
       <div>
       <div className='col-lg-10 col-sm-12 m-auto'>
-        
-
         <div className='text-start text-white mt-4 mb-3 d-flex justify-content-between align-items-center'>
           <div className='col-12'><h1>Premier League Matches</h1></div>
         </div>
@@ -231,8 +233,6 @@ export default function PendingBetsAdmin( {user, setUser} ) {
               
             </div>
           </div>
-          
-          
         </div>      
       </div>
       </div>

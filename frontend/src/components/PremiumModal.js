@@ -42,6 +42,7 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
     // Cleanup the listener on component unmount
     return () => unsubscribe();
   }
+
   const handlePremiumUpgrade = async () => {
     try {
       const response = await axios.post('/create-checkout-session');
@@ -58,6 +59,7 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
   useEffect(() => {
       // console.log(isPremium)
   }, [isPremium])
+  
   return (
     <Modal className='modal' show={showModal} onHide={closeModal} size="lg" centered>
       <Modal.Header closeButton className="bg-lightgreen text-white modal-head ">
