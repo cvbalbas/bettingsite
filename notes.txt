@@ -95,3 +95,29 @@ const handleResetPassword = (email) => {
       }
     });
 };
+
+
+
+To do:
+-placeholder for Stripe process
+-notification that you've upgraded or trial
+-welcome email
+-upgrade email
+-sms verification
+-winning
+
+
+
+
+
+
+-When to save to db?
+-save when admin opens it
+problem: users will get it from oddsapi and oddschecker and might have a diff one from the saved table from admin
+solution: odds api won't change
+solution: check when betting. Check if their bets is within the markets table, if not, add it. If it is, proceed.
+
+
+-no need to save odds, it's saved in the bet transactions
+-diff page for setting winners
+

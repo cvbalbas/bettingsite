@@ -14,7 +14,7 @@ const ToggleSwitch = ({
   name,
   checked,
   onChange,
-  optionLabels,
+  optionLabels = ["ON", "OFF"],
   small,
   disabled
 }) => {
@@ -67,10 +67,7 @@ const ToggleSwitch = ({
   );
 };
 
-// Set optionLabels for rendering.
-ToggleSwitch.defaultProps = {
-  optionLabels: ["ON", "OFF"]
-};
+
 
 ToggleSwitch.propTypes = {
   id: PropTypes.string.isRequired,

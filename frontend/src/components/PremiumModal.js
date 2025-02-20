@@ -1,59 +1,31 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import currency from "../images/moneybag.png"
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
+import axios from 'axios';
 
 export default function PremiumModal({ showModal, closeModal, user, isPremium, setIsPremium}) {
+  const [loading] = useState('false')
 
-    const handlePremiumTrial = () => {
-        const savePremiumStatus = async (currentUser) => {
-            const oneMonthFromNow = new Date();
-            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-            try {
-              const response = await fetch('/api/upgradePremiumTrial', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({"currentUser": currentUser, "expiresAt": oneMonthFromNow.toISOString()}),
-              });
-              const data = await response.json();
-              setIsPremium({
-                isPremium: false,
-                isPremiumTrial: true,
-                trialExpiresAt: oneMonthFromNow.toISOString(),
-              })
-              console.log('User Info:', data);
-              closeModal();
-              window.location.href = "/account"
-            } catch (error) {
-              console.error('Error getting wallet balance:', error);
-            }
-          };
-        const auth = getAuth(); // Initialize the Firebase auth
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-              console.log(currentUser)
-              savePremiumStatus(currentUser)
-            }
-          });
-    }
-    const handlePremiumUpgrade = () => {
-      const savePremiumStatus = async (currentUser) => {
+  const handlePremiumTrial = () => {
+    const savePremiumStatus = async (currentUser) => {
+        const oneMonthFromNow = new Date();
+        oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
         try {
-          const response = await fetch('/api/upgradePremium', {
+          const response = await fetch('/api/upgradePremiumTrial', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({"currentUser": currentUser}),
+            body: JSON.stringify({"currentUser": currentUser, "expiresAt": oneMonthFromNow.toISOString()}),
           });
           const data = await response.json();
-          setIsPremium((prevState) => ({
-            ...prevState,
-            isPremium: true,
-          }));
-          console.log('User Info:', data);
+          setIsPremium({
+            isPremium: false,
+            isPremiumTrial: true,
+            trialExpiresAt: oneMonthFromNow.toISOString(),
+          })
+          // console.log('User Info:', data);
           closeModal();
           window.location.href = "/account"
         } catch (error) {
@@ -63,22 +35,37 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
     const auth = getAuth(); // Initialize the Firebase auth
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
-          console.log(currentUser)
+          // console.log(currentUser)
           savePremiumStatus(currentUser)
         }
       });
+    // Cleanup the listener on component unmount
+    return () => unsubscribe();
+  }
+  const handlePremiumUpgrade = async () => {
+    try {
+      const response = await axios.post('/create-checkout-session');
+      if (response.data.url) {
+        // Redirect the user to the Stripe checkout page
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      alert('Something went wrong. Please try again.');
     }
+  }
 
-    useEffect(() => {
-        console.log(isPremium)
-    }, [isPremium])
+  useEffect(() => {
+      // console.log(isPremium)
+  }, [isPremium])
   return (
     <Modal className='modal' show={showModal} onHide={closeModal} size="lg" centered>
       <Modal.Header closeButton className="bg-lightgreen text-white modal-head ">
         <Modal.Title className='fw-bold font-20'>Choose Your Plan</Modal.Title>
       </Modal.Header>
       <Modal.Body className="bg-lightgreen text-lightgrey">
-        <div className="text-start d-flex justify-content-around">
+        {loading === 'false' ? (
+          <div className="text-start d-flex justify-content-around">
           {/* Basic Plan */}
           <div className=" rounded basic py-4 px-3 mx-1 w-100">
             <h4 className="mb-3 font-15 text-white mx-2">Basic</h4>
@@ -124,7 +111,8 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
           {/* Premium Plan */}
           <div className=" bg-darkblue rounded py-4 px-3 mx-1 w-100">
             <h4 className="mb-3 font-15 text-white mx-2">Premium</h4>
-            <div className="font-20 text-orange fw-bold text-center"><h2 className=' fw-bold '>£50</h2></div>
+            <div className="font-20 text-orange fw-bold text-center"><h2 className=' fw-bold '>&pound;
+            50</h2></div>
             <div className='font-12 fst-italic text-center'>One-time Payment</div>
             <table className='pricing m-auto mt-3'>
                 <tbody>
@@ -175,6 +163,13 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
             </table>
           </div>
         </div>
+        ) : loading === 'processing' ? (
+          <div>Payment is Processing...</div>
+        ) : (
+          <div>Payment Successful. Wait to be redirected...</div>
+        )}
+
+        
       </Modal.Body>
       <Modal.Footer className="bg-lightgreen text-lightgrey">
         <button className=" btn border fw-bold text-white p-2" onClick={closeModal}>
@@ -186,7 +181,7 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
           : handlePremiumTrial }>
           {isPremium.isPremiumTrial ? 
           'Upgrade to Premium' 
-          : 'Try Premium for 1 Month FREE'}
+          : 'Try Premium for FREE'}
         </Button>
       </Modal.Footer>
     </Modal>

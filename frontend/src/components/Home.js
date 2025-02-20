@@ -5,10 +5,9 @@ import { Button, Collapse } from 'react-bootstrap';
 // import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 import Spinner from 'react-bootstrap/Spinner';
 import ToggleSwitch from "./ToggleSwitch";
-import PremiumModal from './PremiumModal';
 
 
-function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, selectedOdds, setSelectedOdds, betsOpen, setBetsOpen, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, handleClearAllBets}) {
+function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, selectedOdds, setSelectedOdds, betsOpen, setBetsOpen, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, handleClearAllBets, openPremiumModal, closePremiumModal, showAlert, setShowAlert, alertText, setAlertText, animationClass, setAnimationClass}) {
   const [matches, setMatches] = useState([]);
   const [markets, setMarkets] = useState([]);
   const [marketIDs, setMarketIDs] = useState([]);
@@ -22,15 +21,12 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   const [searchMarket, setSearchMarket] = useState({});
   const [showAll, setShowAll] = useState({});
   const [notif, setNotif] = useState([])
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertText, setAlertText] = useState('');
-  const [animationClass, setAnimationClass] = useState('');
-  const [premiumModal, setPremiumModal] = useState(false)
+
 
   useEffect(() => {
     if (notif.length > 0) {
       // Set the alert text and trigger fade-in animation
-      setAlertText(`${notif[0]?.split('$')[0]} - ${notif[0]?.split('$')[1]} - ${notif[0]?.split('$')[2]}`);
+      setAlertText(`<strong>Successfully added bet! </strong> <br/>${notif[0]?.split('$')[0]} - ${notif[0]?.split('$')[1]} - ${notif[0]?.split('$')[2]}`);
       setAnimationClass('alert-fade-in');
       setShowAlert(true);
 
@@ -53,6 +49,12 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     }
   }, [notif]);
 
+    useEffect(() => {
+      
+      // console.log(markets)
+    }, [markets]);
+
+
   useEffect(() => {
     if (user !== null){
       const hasTrialExpired = new Date(isPremium.trialExpiresAt) < new Date();
@@ -66,24 +68,28 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       setPercentOdds(false)
     }
     
-
-  }, [isPremium, user])
+    // console.log(markets)
+    // console.log(loadedMatches)
+    // console.log(openMarkets)
+    // console.log(matches)
+  }, [isPremium, user, markets, matches, loadedMatches, openMarkets])
   useEffect(() => {
     const fetchOdds = async () => {
+      // console.log("fetch")
+
       try {
         const response = await fetch('/api/odds'); // Proxy will send this to backend
         const data = await response.json();
 
         setMatches(data.data); // Assuming data is in data.data
-        console.log(data.data)
-        
+        // console.log(data.data)
         
       } catch (error) {
-        // console.error('Error fetching odds:', error);
+        console.error('Error fetching odds:', error);
         
       }
     };
-
+    
     const fetchMarkets = async () => {
       try {
         const response = await fetch('/api/markets'); 
@@ -98,23 +104,25 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         console.error('Error fetching markets:', error);
       }
     }
-
+    
+    
     // Fetch odds, markets, and balance when the component mounts
     fetchOdds();
     fetchMarkets();
     setLoading(false)
+    
 
     // Refresh the odds every 10 minutes
-    // const intervalId = setInterval(fetchOdds, 600000); // 600,000ms = 10 minutes
+    const intervalId = setInterval(fetchOdds, 600000); // 600,000ms = 10 minutes
 
     // // Cleanup interval on unmount
-    // return () => clearInterval(intervalId);
+    return () => clearInterval(intervalId);
 
     // const auth = getAuth(); // Initialize the Firebase auth
     // const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
     //   if (currentUser) {
     //     setUser(currentUser); // Set the logged-in user
-    //     // console.log(currentUser)
+    //     // // console.log(currentUser)
         
     //   } else {
     //     setUser(null); // Clear user state if logged out
@@ -137,7 +145,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   };
   // Generate image path based on team name
   const getImagePath = (teamName) => {
-    const formattedName = teamName.replace(/ /g, '_'); // Convert to lowercase and replace spaces
+    const formattedName = teamName.replace(/ /g, '_'); // replace spaces
     return `/images/${formattedName}.png`; // Construct the image path
   };
 
@@ -165,41 +173,41 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     const groupedMatches = {};
 
     //-----Testing------
-    groupedMatches["25 October 2024"] = []
-    // console.log(JSON.stringify(markets))
-    const marketIDsForMatch = markets.filter((market) => market.fixture === "brighton-v-wolverhampton").map((market) => market.marketId)
-
-    groupedMatches["25 October 2024"].push({
-      fixture: "Brighton v Wolverhampton",
-      id: 65478,
-      homeTeam: "Brighton and Hove Albion",
-      awayTeam: "Wolverhampton Wanderers",
-      time: "13:00",
-      date: "25 October 2024",
-      homeOdds: 1.52, // Replace with your odds logic
-      drawOdds: 6.40,
-      awayOdds: 5.10,
-      marketIDs: marketIDsForMatch
-    })
+    // groupedMatches["03 December 2024"] = []
+    // // console.log(JSON.stringify(markets))
+    // const marketIDsForMatch = markets.filter((market) => market.subeventName === "Ipswich v Crystal Palace").map((market) => market.marketId)
     
-    const marketIDsForMatch2 = markets.filter((market) => market.fixture === "leicester-v-nottingham-forest").map((market) => market.marketId)
-    groupedMatches["25 October 2024"].push({
-      fixture: "Leicester v Nottingham Forest",
-      id: 12345,
-      homeTeam: "Leicester City",
-      awayTeam: "Nottingham Forest",
-      time: "18:00",
-      date: "25 October 2024",
-      homeOdds: 1.52, // Replace with your odds logic
-      drawOdds: 6.40,
-      awayOdds: 5.10,
-      marketIDs: marketIDsForMatch2
-    })
+    // groupedMatches["03 December 2024"].push({
+    //   fixture: "Ipswich v Crystal Palace",
+    //   id: "1f3a141af7b6cda2db7c51cd49b69430",
+    //   homeTeam: "Ipswich Town",
+    //   awayTeam: "Crystal Palace",
+    //   time: "19:00",
+    //   date: "03 December 2024",
+    //   homeOdds: 1.52, // Replace with your odds logic
+    //   drawOdds: 6.40,
+    //   awayOdds: 5.10,
+    //   marketIDs: marketIDsForMatch
+    // })
+    
+    // // const marketIDsForMatch2 = markets.filter((market) => market.fixture === "leicester-v-nottingham-forest").map((market) => market.marketId)
+    // // groupedMatches["25 October 2024"].push({
+    // //   fixture: "Leicester v Nottingham Forest",
+    // //   id: 12345,
+    // //   homeTeam: "Leicester City",
+    // //   awayTeam: "Nottingham Forest",
+    // //   time: "18:00",
+    // //   date: "25 October 2024",
+    // //   homeOdds: 1.52, // Replace with your odds logic
+    // //   drawOdds: 6.40,
+    // //   awayOdds: 5.10,
+    // //   marketIDs: marketIDsForMatch2
+    // // })
     //-----End Testing------
 
-    // console.log(marketIDsForMatch)
+    // // console.log(marketIDsForMatch)
     matches.forEach(match => {
-      // console.log(match.teams)
+      // // console.log(match.teams)
       const matchDate = formatDate(match.commence_time); // Get readable date
       if (!groupedMatches[matchDate]) {
         groupedMatches[matchDate] = []; // Create new array if it doesn't exist
@@ -209,7 +217,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       let lowestIndex = 0; 
       let lowestTotal = 200 //win draw loss should add up to 100% odds chance but all bookies have a margin. we are trying to get the one with the lowest margin
       for (let j = 0; j < match["sites"].length; j++) {
-        // console.log(`Site index: ${j}`);
+        // // console.log(`Site index: ${j}`);
         
         // Check if 'h2h' odds exist and contain all three elements (for win, draw, loss)
         if (match["sites"][j]["odds"]["h2h"] && match["sites"][j]["odds"]["h2h"].length === 3) {
@@ -223,7 +231,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                 lowestIndex = j;
             }
         } else {
-            // console.log(`Skipping site ${j} due to missing or incomplete h2h odds`);
+            // // console.log(`Skipping site ${j} due to missing or incomplete h2h odds`);
             continue;
         }
     }
@@ -359,7 +367,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           break
       }
       // console.log(fixture)
-
+      // // console.log(JSON.stringify(marketIDs))
       const marketIDsForMatch = marketIDs.filter((market) => market.fixture === fixture).map((market) => market.marketId)
       // console.log(marketIDsForMatch)
 
@@ -368,7 +376,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       .map((team) => team.charAt(0).toUpperCase() + team.slice(1)) // Capitalize each team
       .join(' ')
       .replace(' V ', ' v ')
-      // console.log(subeventName)
+      // // console.log(subeventName)
       
       // Push an object with home team, away team, and formatted time
       groupedMatches[matchDate].push({
@@ -385,6 +393,24 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       });
     });
 
+    // const saveMatches = async (groupedMatches) => {
+    //   try {
+    //     const response = await fetch('/api/save-data', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify(groupedMatches),
+    //     });
+    //     const data = await response.json();
+    //     // console.log('Odds saved successfully:', data);
+    //     // setWalletBalance(data.results[0]["wallet_balance"])
+    //     // console.log(groupedMatches)
+    //   } catch (error) {
+    //     console.error('Error saving odds:', error);
+    //   }
+    // }
+    // saveMatches(groupedMatches)
     return groupedMatches;
   };
 
@@ -409,7 +435,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     return acc;
   }, {});
   
-
+  // console.log(filteredGroupedMatches)
 
   // Function to handle clicking on the odds
   const handleOddsClick = (matchId, type, odds, market, match) => {
@@ -443,10 +469,82 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         prevSelectedOdds.filter((_, i) => i !== matchIndex)
       );
     }
-    console.log(notif)
+    // console.log(notif)
   };
 
-  
+  useEffect(() => {
+    
+    const fetchMarketsRepeat = async () => {
+      const openMarketsMatchIds = Object.keys(openMarkets).filter(matchId => openMarkets[matchId])
+      // console.log(openMarketsMatchIds)
+
+      const getMarketIDsByMatchId = (groupedMatches, matchId) => {
+        return Object.values(groupedMatches) // Get all match arrays
+            .flat() // Flatten them into one array
+            .filter(match => match.id === matchId) // Find matches with the given matchId
+            .flatMap(match => match.marketIDs); // Extract marketIDs
+      };
+      const marketIDs = []
+      for(let num = 0; num < openMarketsMatchIds.length; num++) {
+        marketIDs.push(getMarketIDsByMatchId(groupedMatches, openMarketsMatchIds[num]))
+      }
+      
+      // console.log(marketIDs.flat())
+      if (marketIDs.length != 0){
+        fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+ marketIDs.flat().join(',') + "&repub=OC")
+        .then(response => response.json())
+        .then(data => {
+          // console.log(data);
+          // console.log(markets);
+          const updateMarkets = (data) => {
+            setMarkets((prevMarkets) =>
+              prevMarkets.map((market) => {
+                // Find the corresponding market in `data`
+                if (data.length != 0) {
+                  const updatedMarket = data.find((d) => d.marketId === market.marketId);
+                  
+                  if (updatedMarket) {
+                    return {
+                      ...market,
+                      bets: market.bets.map((bet) => {
+                        // Find the updated bet in `data`
+                        const updatedBet = updatedMarket.bets.find((b) => b.betId === bet.betId);
+                        
+                        // Only update if there's a new bestOddsDecimal
+                        if (updatedBet && updatedBet.bestOddsDecimal !== bet.bestOddsDecimal) {
+                          return { ...bet, bestOddsDecimal: updatedBet.bestOddsDecimal };
+                        }
+                        return bet;
+                      }),
+                    };
+                  }
+                }
+                return market;
+              })
+            );
+          };
+          updateMarkets(data);
+          
+        })
+        .catch(error => console.error(`Error fetching odds for market`));
+      }
+      
+    }
+    
+    
+
+    // Fetch odds, markets, and balance when the component mounts
+    fetchMarketsRepeat();
+    
+
+    // Refresh the odds every 10 minutes
+    const intervalId = setInterval(fetchMarketsRepeat, 600000); // 600,000ms = 10 minutes
+
+    // // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+    
+  }, [openMarkets]);
+
 
   const handleGetMarkets = async (match) => {
     setLoadingMatch((prev) => ({ ...prev, [match.id]: true }));
@@ -457,7 +555,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
     if (matchIndex === -1) {
       // If the match is not in loadedMatches, add it
-      setLoadedMatches((prevLoadedMatches) => [match.id]);
+      setLoadedMatches(() => [match.id]);
       if (markets.some((market) => market.subeventName === match.fixture)){
         setOpenMarkets((prevState) => ({
           ...prevState,
@@ -466,12 +564,16 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
 
       } else {
-        // console.log(loadedMatches)
-        // console.log(match.marketIDs.join(','))
-        fetch(`https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=${match.marketIDs.join(',')}&repub=OC`)
+        // console.log(marketIDs)
+        // console.log(matches)
+        // console.log(markets)
+        // console.log(openMarkets)
+        // console.log(`https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=${match.marketIDs.join(',')}&repub=OC`)
+
+        fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+ match.marketIDs.join(',') + "&repub=OC")
         .then(response => response.json())
         .then(data => {
-          // console.log(data);
+          // // console.log(data);
           // setMarkets(data)
           setMarkets((prevMarkets) => [...prevMarkets, ...data]);
           // console.log(markets)
@@ -480,30 +582,49 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
             [match.id]: !prevState[match.id], // Toggle open/close for the match div
           }));
           setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
-
+          // saveMarkets(match.marketIDs.join(','))
           // Process and display odds as needed
           // You can now display or use the odds in your UI
         })
         .catch(error => console.error(`Error fetching odds for market`));
 
         //----- Testing ----
-        const fetchjson = async () => {
-          try {
-            const response = await fetch('/api/savedmarkets'); 
-            const data = await response.json();
-            console.log(data)
-            setMarkets(data)
-            setOpenMarkets((prevState) => ({
-              ...prevState,
-              [match.id]: !prevState[match.id], // Toggle open/close for the match div
-            }));
-          } catch (error) {
-            console.error('Error fetching markets:', error);
-          }
-        }
-        fetchjson()
-        setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
+        // const fetchjson = async () => {
+        //   try {
+        //     const response = await fetch('/api/savedmarkets'); 
+        //     const data = await response.json();
+        //     // console.log(data)
+        //     setMarkets(data)
+        //     setOpenMarkets((prevState) => ({
+        //       ...prevState,
+        //       [match.id]: !prevState[match.id], // Toggle open/close for the match div
+        //     }));
+        //     setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
+        //     // saveMarkets(data)
+        //   } catch (error) {
+        //     console.error('Error fetching markets:', error);
+        //   }
+        // }
+        // fetchjson()
+        
         //----- End Testing ----
+
+        // const saveMarkets = async (markets) => {
+        //   // console.log("marketSave")
+        //   try {
+        //     const response = await fetch('/api/save-markets', {
+        //       method: 'POST',
+        //       headers: {
+        //         'Content-Type': 'application/json',
+        //       }
+        //     });
+        //     const data = await response.json();
+        //     // console.log('Markets saved successfully:', data);
+        //     // console.log(markets)
+        //   } catch (error) {
+        //     console.error('Error saving markets:', error);
+        //   }
+        // }
       }   
     } else {
       // If the match is already in prevLoadedMatches, remove it (unselect)
@@ -531,10 +652,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       localStorage.setItem('togglePercent', checked);
     } else {
       const hasTrialExpired = new Date(isPremium.trialExpiresAt) < new Date();
-      console.log(isPremium.trialExpiresAt)
+      // console.log(isPremium.trialExpiresAt)
       if(isPremium.isPremiumTrial){
         if(hasTrialExpired) {
-          console.log("Trial has expired. Would you like to Subscribe?")
+          // console.log("Trial has expired. Would you like to Subscribe?")
           openPremiumModal()
         } else {
           setPercentOdds(checked);
@@ -547,13 +668,11 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   };
 
   useEffect(() => {
-    console.log(percentOdds)
+    // console.log(percentOdds)
   }, [percentOdds])
 
 
 
-  const openPremiumModal = () => setPremiumModal(true);
-  const closePremiumModal = () => setPremiumModal(false);
 
 
   return (
@@ -567,13 +686,12 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     //   <div className={`m-auto ${betsOpen ? 'home':'homesmall'}`}>
     //   <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} />
       <div>
-        <PremiumModal showModal={premiumModal} closeModal={closePremiumModal} user = {user} isPremium={isPremium} setIsPremium={setIsPremium} />
       <div className='col-lg-10 col-sm-12 m-auto'>
         <div className='alertsBox'>
           {showAlert && (
-            <div className={`alert alert-success fade show ${animationClass}`} role="alert">
-              <strong>Successfully added bet! </strong> <br />
-              {alertText}
+            <div className={`alert alert-success fade show ${animationClass}`} role="alert"
+            dangerouslySetInnerHTML={{ __html: alertText }}>
+              
             </div>
           )}
         </div>

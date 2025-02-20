@@ -3,8 +3,8 @@ import { Modal } from 'react-bootstrap';
 
 export default function Disclaimer({ showModal, closeModal}) {
   return (
-    <Modal show={showModal} onHide={() => {closeModal();}} centered>
-    <Modal.Header closeButton className="bg-lightgreen text-white modal-head">
+    <Modal show={showModal} centered>
+    <Modal.Header className="bg-lightgreen text-white modal-head">
       <Modal.Title className="fw-bold">Disclaimer</Modal.Title>
     </Modal.Header>
     <Modal.Body className="bg-lightgreen text-white">
@@ -14,7 +14,7 @@ export default function Disclaimer({ showModal, closeModal}) {
     This platform <strong className='text-orange'>does not offer any form of real-world gambling</strong>.
     </Modal.Body>
     <Modal.Footer className="bg-lightgreen border-top-0 justify-content-center">
-        <button className="mt-3 w-100 btn btn-prim text-white fw-bold">I Acknowledge</button>
+        <button className="mt-3 w-100 btn btn-prim text-white fw-bold" onClick={closeModal}>I Acknowledge</button>
     </Modal.Footer>
   </Modal>
   )

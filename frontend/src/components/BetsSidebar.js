@@ -1,15 +1,15 @@
-import React, {useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import currency from "../images/moneybag.png"
 import empty from "../images/Empty.png"
 
 
 
-export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance}) {
+export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass}) {
 
   useEffect(() => {
     
-    console.log(selectedOdds)
-    console.log(betAmounts)
+    // console.log(selectedOdds)
+    // console.log(betAmounts)
   }, [selectedOdds, betAmounts]);
 
 
@@ -26,8 +26,8 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
         ...prevPayouts,
         [key]: payout.toFixed(2),
     }));
-    console.log(betAmounts)
-    console.log(estimatedPayouts)
+    // console.log(betAmounts)
+    // console.log(estimatedPayouts)
   };
   const removeBet = (bet) => {
     const betKey = `${bet.id}$${bet.selectedMarket}$${bet.selectedType}`;
@@ -62,9 +62,30 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
           }),
       });
       const data = await response.json();
-      console.log('Odds saved successfully:', data);
+      // console.log('Odds saved successfully:', data);
       setWalletBalance(data.results[0]["wallet_balance"])
+      closeSidebar();
+      handleClearAllBets();
+      setAlertText('<strong>Successfully placed bets! </strong>');
+      setAnimationClass('alert-fade-in');
+      setShowAlert(true);
 
+      // Start fade-out after 1 second
+      const fadeOutTimeout = setTimeout(() => {
+        setAnimationClass('alert-fade-out');
+      }, 1000);
+
+      // Remove the alert after the fade-out animation is complete
+      const clearAlertTimeout = setTimeout(() => {
+        setShowAlert(false);
+        setAnimationClass('');
+      }, 1500);
+
+      // Cleanup timeouts
+      return () => {
+        clearTimeout(fadeOutTimeout);
+        clearTimeout(clearAlertTimeout);
+      };
     } catch (error) {
       console.error('Error saving odds:', error);
     }

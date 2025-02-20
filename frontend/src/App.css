@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-
+.container {
+  overflow-y: scroll;
+  height: 80vh;
+  color: white;
+}
 body {
   font-family: 'Inter', sans-serif !important;
   font-size: 14px !important;
@@ -68,7 +72,7 @@ body::-webkit-scrollbar-thumb
   color: #FF8135;
 }
 .text-blue {
-  color: #141428;
+  color: #141428 !important;
 }
 .text-red {
   color: #DC3545;
@@ -148,6 +152,7 @@ h1 {
 }
 .odds:active .teamName{
   color:#141428;
+  font-weight: bold;
 }
 .odds:active .teamOdds{
   color:#FFF;
@@ -163,7 +168,7 @@ h1 {
   cursor: pointer;
 }
 .oddsClicked:active{
-  background-color:#1e1e3d;
+  background-color:#FF8135;
   cursor: pointer;
 }
 
@@ -172,6 +177,7 @@ h1 {
   color:#141428;
   font-weight: bold;
 }
+
 .teamOddsClicked {
   color:#FFF;
   font-weight: bold;
@@ -325,7 +331,7 @@ input:focus {
   transform: translateX(310px)
 }
 
-.open {
+.betsOpen {
   width: 300px;
   transform: translateX(0px)
 }
@@ -345,6 +351,7 @@ input:focus {
 .match-list {
   height: calc(100vh - 220px);
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-gutter: stable;
 }
 .match-list::-webkit-scrollbar-track
@@ -615,7 +622,7 @@ svg:hover path {
   content: none !important; 
 } 
 .dropdown-toggle {
-  width: 50px;
+  width: auto;
 }
 .btn.show {
   border-color: transparent;
@@ -647,13 +654,17 @@ svg:hover path {
   padding-left: 40px;
   padding-right: 40px;
 }
+.matchMarginAccount {
+  padding-left: 40px;
+  padding-right: 40px;
+}
 .changePw {
   text-align: left;
 }
 .showHide {
   background-color: transparent;
   font-size: smaller;
-  width: 80px;
+  width: 100px;
   border-radius: 0px;
   padding: 9px;
   border: 1px solid transparent
@@ -825,8 +836,9 @@ a slight movement of the header row */
 }
 .alertsBox {
   position: absolute;
-  bottom: 5vh;
-  right: 5px;
+  bottom: 10vh;
+  right: 10px;
+  width: 200px;
 }
 .alert-fade-in {
   animation: fadeIn 0.3s forwards;
@@ -870,6 +882,79 @@ a slight movement of the header row */
 .basic {
   border: 2px #D9D9D9 solid
 }
+
+.addCoinsImg {
+  height: 120px;
+}
+.addCoinsDiv {
+  border-radius: 5px;
+  background: rgb(255,255,255);
+  background: linear-gradient(150deg, rgba(255,255,255,1) 44%, rgba(187,187,187,1) 100%);
+  width: 100px;
+  padding: 10px 0px;
+  text-align: center;
+}
+
+.bet-card {
+  border: 1px #274e4e solid;
+  border-radius: 5px;
+
+}
+
+.notif {
+  font-size: 8px;
+  position: relative;
+  top: -5px;
+  left: -7px;
+  padding: 4px;
+}
+
+.notification-icon {
+  padding: 10px 0px;
+}
+
+.unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.dropdown-notification {
+  width: 200px;
+  padding: 5px 0px;
+  font-size: 10px;
+  text-align: left;
+}
+.notification-item {
+  transition-duration: 0.3s;
+  padding: 5px 10px;
+}
+.notification-item:hover {
+  background-color: #346565 !important;
+  color: white;
+ 
+}
+
+.notification-item:hover .result-won {
+  color: #FF8135 !important;
+}
+.result-won {
+  color:green;
+  font-weight: bold;
+}
+
+.result-lost {
+  color:red;
+  font-weight: bold;
+}
+.react-tel-input .form-control {
+  width: 100% !important;
+}
+
+
 @media only screen and (max-width: 992px) { /*smaller than desktop =TABLET*/
   .odds-container {
     width: 100%;
@@ -884,6 +969,10 @@ a slight movement of the header row */
   .matchMargin {
     padding-left: 20px;
     padding-right: 20px;
+  }
+  .matchMarginAccount {
+    padding-left: 40px;
+    padding-right: 40px;
   }
   .changePw {
     text-align: right;
@@ -926,7 +1015,7 @@ a slight movement of the header row */
     width: 0vw;
     transform: translateX(100vw)
   }
-  .open {
+  .betsOpen {
     width: 100vw;
     transform: translateX(0)
   }
@@ -940,6 +1029,10 @@ a slight movement of the header row */
     padding-left: 10px;
     padding-right: 10px;
   }
+  .matchMarginAccount {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
   .changePw {
     text-align: right;
   }
@@ -947,7 +1040,7 @@ a slight movement of the header row */
 
 @media only screen and (max-width: 576px) { /*XS ---------------------------*/
   body {
-    font-size: 3vw !important;
+    font-size: 0.7rem !important;
   }
   .searchgroup {
     font-size: 10px;
@@ -962,26 +1055,26 @@ a slight movement of the header row */
   }
 
   .font-12 {
-    font-size: 2.8vw;
+    font-size: 0.7rem;
   }
   .font-15 {
-    font-size: 3.3vw;
+    font-size: 0.75rem;
   }
   .font-18 {
-    font-size: 14px;
+    font-size: 0.8rem;
   }
   .font-20 {
-    font-size: 16px;
+    font-size: 0.85rem;
   }
   .btn {
-    font-size: 3vw !important;
+    font-size: 0.8rem !important;
   };
 
   h1 {
-    font-size: 3.7vw !important;
+    font-size: 0.9rem !important;
   }
   .date {
-    font-size: 2.8vw;
+    font-size: 0.65rem;
   }
   .mt-5 {
     margin-top: 1.5rem !important;
@@ -1027,7 +1120,7 @@ a slight movement of the header row */
     height: calc(100vh - 200px);
   }
   .drop {
-    font-size: 3.5vw;
+    font-size: 0.75rem;
   }
   .bot-nav-bets svg {
     height: 18px;
@@ -1040,10 +1133,10 @@ a slight movement of the header row */
     overflow-y: auto;
   }
   .input {
-    font-size: 3vw;
+    font-size: 0.75rem;
   }
   .form-control {
-    font-size: 3vw !important;
+    font-size: 0.75rem !important;
   }
   .p-3 {
     padding: 0.7rem !important;
@@ -1056,5 +1149,9 @@ a slight movement of the header row */
   }
   .currency {
     padding: 8px;
+  }
+  .matchMarginAccount {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }

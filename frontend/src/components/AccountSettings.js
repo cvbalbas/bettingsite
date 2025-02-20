@@ -4,7 +4,7 @@ import { getCurrentUser } from "../firebase/authMethods"; // Import Firebase aut
 import { resetPassword } from "../firebase/authMethods"; // Import Firebase auth functions
 import currency from "../images/moneybag.png"
 
-export default function AccountSettings({user, walletBalance, isPremium, setIsPremium}) {
+export default function AccountSettings({user, walletBalance, setWalletBalance, isPremium, setIsPremium, openPremiumModal, closePremiumModal, openAddCoinsModal, closeAddCoinsModal, coinsToAdd}) {
   const [transactions, setTransactions] = useState([]);
   const [reset, setReset] = useState(false)
   const [switcher, setSwitcher] = useState('account');
@@ -12,7 +12,11 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
   const [filterType, setFilterType] = useState('all');
+  const [message, setMessage] = useState("");
+  const [order, setOrder] = useState("");
+  const [sortedBets, setSortedBets] = useState([]);
 
+  
   useEffect(() => {
     
     // Fetch user data and last 10 transactions from the backend
@@ -20,7 +24,7 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
       try {
         // const currentUser = await getCurrentUser();
         // setUser(currentUser)
-        console.log(user)
+        // console.log(user)
         const response =  await fetch('/api/transactions', {
           method: 'POST',
           headers: {
@@ -29,21 +33,69 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
           body: JSON.stringify({user}),
         });
         const data = await response.json();
-        console.log(data.results)
+        // console.log(data.results)
         setTransactions(data.results);
       } catch (error) {
         console.error('Error fetching user data', error);
       }
     };
+
+   
     
     if(user) {
       fetchUserData();
     }
     
     
-    console.log(user)
+    // console.log(user)
   }, [user, walletBalance]);
+
+  useEffect(() => {
+    const verifyPayment = async () => {
+      const query = new URLSearchParams(window.location.search);
+      const sessionId = query.get("session_id");
+      
+      if (query.get("success") && sessionId) {
+        // console.log(user.uid)
+        const response = await fetch('/api/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, uid: user.uid }), // Include `uid`
+        });
   
+        const data = await response.json();
+        if (data.isValid) {
+          setMessage("Order placed! You will receive an email confirmation.");
+          setOrder("success")
+          if(data.premiumChange){
+            setIsPremium({ isPremium: true, isPremiumTrial: false, trialExpiresAt: null });
+          } 
+          if(data.coinsAdded){
+            var curWalletBalance = localStorage.getItem("walletBalance")
+            setWalletBalance(curWalletBalance*1 + data.coinsAdded*1)
+          }
+        } else {
+          setOrder("failed")
+          setMessage("Payment verification failed. Please contact support.");
+        }
+      } else if (query.get("cancelled")) {
+        setOrder("cancelled")
+        setMessage("Order cancelled -- continue to shop around and checkout when you're ready.");
+      }
+      // Remove the query parameters from the URL
+      window.history.replaceState({}, document.title, "/account");
+    };
+
+  
+   
+    
+    if(user) {
+      verifyPayment();
+    }
+    
+    
+    // console.log(user)
+  }, [user, setIsPremium]);
 
   const handleResetPassword = async () => {
     const currentUser = await getCurrentUser();
@@ -60,7 +112,7 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
     try {
       // const currentUser = await getCurrentUser();
       // setUser(currentUser)
-      console.log(user)
+      // console.log(user)
       const response =  await fetch('/api/bets-history', {
         method: 'POST',
         headers: {
@@ -69,33 +121,46 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
         body: JSON.stringify({user}),
       });
       const data = await response.json();
-      console.log(data.results)
+      // console.log(data.results)
       setBetHistory(data.results);
+      filterBets(data.results);
     } catch (error) {
       console.error('Error fetching user data', error);
     }
   };
 
-  // Search by bet type
-  const filteredBets = betHistory
-    .filter((bet) =>
-      bet["bet_type"].toLowerCase().includes(searchTerm.toLowerCase()) || bet["fixture"].toLowerCase().includes(searchTerm.toLowerCase()) || bet["bet_market"].toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter((bet) => {
-      if (filterType === 'settled') {
-        return bet.status === 'won' || bet.status === 'lost';
-      } else if (filterType === 'pending') {
-        return bet.status === 'pending';
-      }
-      return true;
-    });
+useEffect(() => {
+  filterBets(betHistory)
+}, [betHistory, filterType, searchTerm])
 
+
+// Remove duplicates by using a Set
+function filterBets(betHistory){
+  const uniqueBets = Array.from(new Map(betHistory.map(bet => [bet.bet_id, bet])).values());
+
+  // Filter bets based on search and dropdown selection
+  const filteredBets = uniqueBets.filter((bet) => {
+    const matchesSearch = bet["bet_type"].toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          bet["fixture"].toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          bet["bet_market"].toLowerCase().includes(searchTerm.toLowerCase());
+  
+    const matchesFilter = filterType === 'settled' ? (bet.status === 'won' || bet.status === 'lost')
+                       : filterType === 'pending' ? (bet.status === 'pending')
+                       : true; // Default: show all
+  
+    return matchesSearch && matchesFilter;
+  });
+  
   // Sort by bet date
-  const sortedBets = [...filteredBets].sort((a, b) => {
+  const sortedBets = filteredBets.sort((a, b) => {
     const dateA = new Date(a.placed_at);
     const dateB = new Date(b.placed_at);
     return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
   });
+  // console.log(sortedBets)
+  setSortedBets(sortedBets)
+}
+
 
   const toggleSortOrder = () => {
     setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
@@ -112,6 +177,15 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
     return `${obfuscatedLocal}@${domain}`;
   }
 
+  const obfuscatePhoneNumber = (phoneNumber) => {
+    if (!phoneNumber || phoneNumber.length < 4) return phoneNumber; 
+  
+    const visibleDigits = 4; // Number of digits to keep visible at the start
+    const lastDigits = 2; // Number of digits to keep visible at the end
+    const maskedPart = "*".repeat(phoneNumber.length - (visibleDigits + lastDigits));
+  
+    return phoneNumber.slice(0, visibleDigits) + maskedPart + phoneNumber.slice(-lastDigits);
+  };
   return (
     <div className='col-lg-10 col-sm-12 m-auto'>
       <div className='switch col-4 d-flex justify-content-between align-items-center text-center mt-4 p-1 mb-3'>
@@ -122,16 +196,16 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
       <div className='row bg-green shadow-down rounded py-4 mb-5 match-list m-auto'>
         {switcher === 'account' ? ( 
           <>
-          <div className='col-12 col-xxl-5 matchMargin my-3'>
-          <div class="row g-3 align-items-center mb-3 d-flex">
+          <div className='col-12 col-xxl-5 matchMarginAccount my-1'>
+          <div className="row g-3 align-items-center mb-3 d-flex">
             <div className="col-4">
-              <label for="email" className="col-form-label text-grey text-uppercase">Email</label>
+              <label htmlFor="emailContainer" className="col-form-label text-grey text-uppercase">Email</label>
             </div>
             <div className="col-8">
               <div className='col-10 col-sm-11'>
                 <input 
-                  type="email" 
-                  id="email" 
+                  type="text" 
+                  id="emailContainer" 
                   className="form-control accountInput" 
                   value={user !== null ?  obfuscateEmail(user.email) : ''} 
                   disabled
@@ -141,16 +215,16 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
           </div>
           <div className="row g-3 align-items-center mt-3">
             <div className="col-4">
-              <label for="password" className="col-form-label text-grey text-uppercase">Password</label>
+              <label htmlFor="pwContainer" className="col-form-label text-grey text-uppercase">Password</label>
             </div>
             <div className="col-8">
               <div className='d-flex align-items-center justify-content-start'>
                 <div className='col-10 col-sm-11 bg-darkblue rounded'>
                   <input 
-                    type="password" 
-                    id="password" 
+                    type="text" 
+                    id="pwContainer" 
                     className="form-control accountInput" 
-                    value="sample" 
+                    value="******" 
                     disabled
                   />   
                 </div>
@@ -162,6 +236,27 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
               </div>    
             </div>
           </div>
+          <div className="row g-3 align-items-center mt-3">
+            <div className="col-4">
+              <label htmlFor="pwContainer" className="col-form-label text-grey text-uppercase">Phone Number</label>
+            </div>
+            <div className="col-8">
+              <div className='d-flex align-items-center justify-content-start'>
+                <div className='col-10 col-sm-11 bg-darkblue rounded'>
+                  <input 
+                    type="text" 
+                    id="pwContainer" 
+                    className="form-control accountInput" 
+                    value={user !== null ?  obfuscatePhoneNumber(user.phoneNumber) : ''}
+                    disabled
+                  />   
+                </div>
+                <div className='editPass col-2 col-sm-1  p-3 mouse-pointer'>
+                  
+                </div>
+              </div>    
+            </div>
+          </div>
           <div className="row g-3 align-items-center mb-3">
             <div className='col-4'></div>
             <div className='col-8'>
@@ -169,18 +264,19 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
               (<span className='text-orange fst-italic'> Check your email for the password reset link. </span>)} 
             </div>
           </div>
-          <div className="row g-3 align-items-center my-3">
+          <div className="row g-3 align-items-center my-1">
             <div className="col-4">
-              <label for="balance" class="col-form-label text-grey text-uppercase">Wallet Balance</label>
+              <label htmlFor="balance" className="col-form-label text-grey text-uppercase">Wallet Balance</label>
             </div>
             <div className='col-8 d-flex align-items-center justify-content-start'>
               <div className="col-10 col-sm-11 d-flex align-items-stretch justify-content-between balanceInput">
                   <div className='inputDiv'><input pattern="^\d*(\.\d{0,2})?$" className='input inputBet fw-bold' id="walletBalance" value={walletBalance} disabled/></div>
                   <div className='currency'><img src = {currency} className='currencyImg' alt='coins'/></div>
               </div>
-              <div className='col-2 col-sm-1 p-3 mouse-pointer addCoins'>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
+              <div className='col-2 col-sm-1 p-3 mouse-pointer addCoins'
+              onClick={openAddCoinsModal}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-plus-lg" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
               </svg>
               </div>
             </div>
@@ -188,30 +284,50 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
           </div>
           <div className="row g-3 align-items-center mt-3">
             <div className="col-4">
-              <label for="balance" class="col-form-label text-grey text-uppercase">Account Type</label>
+              <label htmlFor="balance" className="col-form-label text-grey text-uppercase">Account Type</label>
             </div>
             <div className='col-8'>
               <div className='d-flex align-items-center justify-content-start'>
                 <div className="col-10 col-sm-11  d-flex align-items-stretch justify-content-between rounded bg-darkblue">
-                    <div className='inputDiv'><input pattern="^\d*(\.\d{0,2})?$" className='input inputBet fw-bold' id="walletBalance" value='PREMIUM' disabled/></div>
+                    <div className='inputDiv'><input pattern="^\d*(\.\d{0,2})?$" className='input inputBet fw-bold' id="walletBalance" 
+                    value= {isPremium.isPremium ? 'PREMIUM' : 
+                      isPremium.isPremiumTrial && (new Date(isPremium.trialExpiresAt) > new Date())  ? 
+                      'PREMIUM Trial' 
+                      : 'BASIC'} 
+                    disabled/></div>
                 </div>
-                <div className='col-2 col-sm-1  p-3 mouse-pointer addCoins'>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil-fill" viewBox="0 0 16 16">
-                    <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z"/>
-                  </svg>
-                </div>
+                {isPremium.isPremium ? (<></>) : (
+                  <div className='col-2 col-sm-1  p-3 mouse-pointer addCoins'
+                    onClick={openPremiumModal}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil-fill" viewBox="0 0 16 16">
+                      <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z"/>
+                    </svg>
+                  </div>
+                  )}
               </div>
             </div>
           </div>
           <div className='row g-3 alignt-items-center justify-content-start mb-3'>
             <div className='col-4'></div>
             <div className='col-8'>
-              <span className='text-orange fst-italic'>Trial ends at 02 December 2024 </span>
+              {order ? (
+                <span className='text-orange fst-italic'>{message}</span>
+              ) : (
+              <span className='text-orange fst-italic'>
+                {isPremium.isPremium ? '' : 
+                isPremium.isPremiumTrial && (new Date(isPremium.trialExpiresAt) > new Date())  ? 
+                `Trial ends at ${new Intl.DateTimeFormat('en-GB', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(new Date(isPremium.trialExpiresAt))}.` 
+                : ''} </span>
+              )}
             </div>
           </div>
 
           </div>
-          <div className='col-12 col-xxl-7 matchMargin'>
+          <div className='col-12 col-xxl-7 matchMarginAccount'>
             <div className='d-flex justify-content-between align-items-center'>
               <div className='col-md-4 col-6'><label className="col-form-label text-grey text-uppercase">Transaction History</label></div>
               <div className='col-md-8 col-6 key text-white text-end'> <span className='badge bg-dark'>&nbsp;</span> Settled  <span className='badge bg-secondary'>&nbsp;</span> Pending <span className='badge bg-success'>&nbsp;</span> Won <span className='badge bg-danger'>&nbsp;</span> Lost</div>
@@ -287,22 +403,22 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
           </>
         ) : (
           <>
-          <div className='col-12 matchMargin'>
+          <div className='col-12 matchMarginAccount'>
             <div className='d-flex justify-content-between align-items-center'>
               <div className='col-md-4 col-6'><label className="col-form-label text-grey text-uppercase">Transaction History</label></div>
               <div className='selectDiv'>
               {/* Dropdown Filter */}
-                <div class="btn-group">
-                  <button type="button" class="select dropdown-toggle text-capitalize d-flex justify-content-between" data-bs-toggle="dropdown" aria-expanded="false">
+                <div className="btn-group">
+                  <button type="button" className="select dropdown-toggle text-capitalize d-flex justify-content-between" data-bs-toggle="dropdown" aria-expanded="false">
                     <div> {filterType} </div> 
                     <div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
                       <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
                     </svg></div>
                   </button>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li><button class="dropdown-item" type="button" onClick={() => setFilterType('all')}>All</button></li>
-                    <li><button class="dropdown-item" type="button" onClick={() => setFilterType('settled')}>Settled</button></li>
-                    <li><button class="dropdown-item" type="button" onClick={() => setFilterType('pending')}>Pending</button></li>
+                  <ul className="dropdown-menu dropdown-menu-end">
+                    <li><button className="dropdown-item" type="button" onClick={() => setFilterType('all')}>All</button></li>
+                    <li><button className="dropdown-item" type="button" onClick={() => setFilterType('settled')}>Settled</button></li>
+                    <li><button className="dropdown-item" type="button" onClick={() => setFilterType('pending')}>Pending</button></li>
                   </ul>
                 </div>
               </div>
@@ -330,7 +446,7 @@ export default function AccountSettings({user, walletBalance, isPremium, setIsPr
                       <div className='d-flex align-items-center justify-content-start'>
                         <div className='me-2'> {sortOrder === 'asc' ? (
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-up" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"/>
+                            <path fillRule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"/>
                           </svg>
                           ) : ( 
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
