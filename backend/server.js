@@ -594,7 +594,7 @@ app.post('/create-checkout-session', async (req, res) => {
       line_items: [
         {
           // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-          price: 'price_1QLxndGU6rDR9xUo0bZSdLyv',
+          price: process.env.PREMIUM_ID,
           quantity: 1,
         },
       ],
@@ -764,7 +764,7 @@ app.post('/create-checkout-session-coins', async (req, res) => {
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
-        price: 'price_1QR3nxGU6rDR9xUo9J58Qodl',
+        price: process.env.COINS_ID,
         quantity: quantity, // Use dynamic quantity
       },
     ],
