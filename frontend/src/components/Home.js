@@ -2,16 +2,17 @@ import React, { useEffect, useState } from 'react';
 
 
 import { Button, Collapse } from 'react-bootstrap';
-// import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 import Spinner from 'react-bootstrap/Spinner';
 import ToggleSwitch from "./ToggleSwitch";
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 
 
-function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, selectedOdds, setSelectedOdds, betsOpen, setBetsOpen, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, handleClearAllBets, openPremiumModal, closePremiumModal, showAlert, setShowAlert, alertText, setAlertText, animationClass, setAnimationClass}) {
+function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, selectedOdds, setSelectedOdds, betsOpen, setBetsOpen, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, handleClearAllBets, openPremiumModal, closePremiumModal, showAlert, setShowAlert, alertText, setAlertText, animationClass, setAnimationClass, setPhoneSetUp, setRole, openSignupModal, setLoading}) {
+
   const [matches, setMatches] = useState([]);
   const [markets, setMarkets] = useState([]);
   const [marketIDs, setMarketIDs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingHome, setLoadingHome] = useState(true);
   const [loadedMatches, setLoadedMatches] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -85,12 +86,28 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
         setMatches(data.data); // Assuming data is in data.data
         // console.log(data.data)
-        
       } catch (error) {
         console.error('Error fetching odds:', error);
         
       }
     };
+    
+    // For Testing
+    // const fetchOdds2 = async () => {
+    //   console.log("fetch")
+
+    //   try {
+    //     const response = await fetch('/api/odds'); // Proxy will send this to backend
+    //     const data = await response.json();
+
+    //     setMatches(data.data); // Assuming data is in data.data
+    //     console.log(data.data)
+    //     data.data[0]["sites"][0]["odds"]["h2h"][0] = 5.0
+    //   } catch (error) {
+    //     console.error('Error fetching odds:', error);
+        
+    //   }
+    // };
     
     const fetchMarkets = async () => {
       try {
@@ -111,7 +128,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     // Fetch odds, markets, and balance when the component mounts
     fetchOdds();
     fetchMarkets();
-    setLoading(false)
+    setTimeout(function() {
+      setLoadingHome(false)
+    }, 500);
+    
     
 
     // Refresh the odds every 10 minutes
@@ -484,7 +504,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       }
       
       // console.log(marketIDs.flat())
-      if (marketIDs.length != 0){
+      if (marketIDs.length !== 0){
         fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+ marketIDs.flat().join(',') + "&repub=OC")
         .then(response => response.json())
         .then(data => {
@@ -494,7 +514,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
             setMarkets((prevMarkets) =>
               prevMarkets.map((market) => {
                 // Find the corresponding market in `data`
-                if (data.length != 0) {
+                if (data.length !== 0) {
                   const updatedMarket = data.find((d) => d.marketId === market.marketId);
                   
                   if (updatedMarket) {
@@ -638,24 +658,49 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
   const onPercentOddsChange = (checked) => {
     // setPercentOdds(checked);
-    if(isPremium.isPremium) {
-      setPercentOdds(checked);
-      localStorage.setItem('togglePercent', checked);
-    } else {
-      const hasTrialExpired = new Date(isPremium.trialExpiresAt) < new Date();
-      // console.log(isPremium.trialExpiresAt)
-      if(isPremium.isPremiumTrial){
-        if(hasTrialExpired) {
-          // console.log("Trial has expired. Would you like to Subscribe?")
-          openPremiumModal()
-        } else {
-          setPercentOdds(checked);
-          localStorage.setItem('togglePercent', checked);
-        }
+    const changePercentDecimal = () => {
+      if(isPremium.isPremium) {
+        setPercentOdds(checked);
+        localStorage.setItem('togglePercent', checked);
       } else {
-        openPremiumModal()
+        const hasTrialExpired = new Date(isPremium.trialExpiresAt) < new Date();
+        // console.log(isPremium.trialExpiresAt)
+        if(isPremium.isPremiumTrial){
+          if(hasTrialExpired) {
+            // console.log("Trial has expired. Would you like to Subscribe?")
+            openPremiumModal()
+          } else {
+            setPercentOdds(checked);
+            localStorage.setItem('togglePercent', checked);
+          }
+        } else {
+          openPremiumModal()
+        }
       }
     }
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        // setUser to nothing and open Signup Modal
+        setPhoneSetUp(false)
+        setUser(null);
+        setIsPremium({
+          isPremium: false,
+          isPremiumTrial: false,
+          trialExpiresAt: null,
+        })
+        setLoading(false)
+        setRole(null)
+        openSignupModal()
+      } else {
+        setUser(currentUser);
+        changePercentDecimal()
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+    
+    
   };
 
   // useEffect(() => {
@@ -703,7 +748,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
               </div>
             </div>
             <div className='match-list'>
-              {!loading ? (<>
+              {!loadingHome ? (<>
             {Object.keys(filteredGroupedMatches).map((date) => (
             <div key={date} className="date-group">
               <div className='text-uppercase text-lightgrey col-12 bg-lightgreen text-start date matchMargin py-2'>

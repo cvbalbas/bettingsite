@@ -4,39 +4,40 @@ import currency from "../images/moneybag.png"
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 import axios from 'axios';
 
-export default function PremiumModal({ showModal, closeModal, user, isPremium, setIsPremium}) {
+export default function PremiumModal({ showModal, closeModal, user, isPremium, setIsPremium, openSignupModal}) {
   const [loading] = useState('false')
 
   const handlePremiumTrial = () => {
-    const savePremiumStatus = async (currentUser) => {
-        const oneMonthFromNow = new Date();
-        oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-        try {
-          const response = await fetch('/api/upgradePremiumTrial', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({"currentUser": currentUser, "expiresAt": oneMonthFromNow.toISOString()}),
-          });
-          const data = await response.json();
-          setIsPremium({
-            isPremium: false,
-            isPremiumTrial: true,
-            trialExpiresAt: oneMonthFromNow.toISOString(),
-          })
-          // console.log('User Info:', data);
-          closeModal();
-          window.location.href = "/account"
-        } catch (error) {
-          console.error('Error getting wallet balance:', error);
-        }
-      };
     const auth = getAuth(); // Initialize the Firebase auth
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
-          // console.log(currentUser)
-          savePremiumStatus(currentUser)
+          try {
+            const oneMonthFromNow = new Date();
+            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+            
+            const token = await user.getIdToken(); // Get Firebase Auth Token
+            const response = await fetch('/api/upgradePremiumTrial', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Send the token in headers
+              },
+              body: JSON.stringify({"expiresAt": oneMonthFromNow.toISOString()}),
+            });
+            const data = await response.json();
+            setIsPremium({
+              isPremium: false,
+              isPremiumTrial: true,
+              trialExpiresAt: oneMonthFromNow.toISOString(),
+            })
+            // console.log('User Info:', data);
+            closeModal();
+            //window.location.href = "/account"
+          } catch (error) {
+            console.error('Error getting wallet balance:', error);
+          }
+        } else {
+          openSignupModal()
         }
       });
     // Cleanup the listener on component unmount

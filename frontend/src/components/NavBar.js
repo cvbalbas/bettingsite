@@ -4,8 +4,7 @@ import logo from '../images/Logo.png'
 import { logOut } from "../firebase/authMethods";
 import currency from "../images/moneybag.png"
 
-
-export default function NavBar({ openLoginModal, openSignupModal, user, setUser, selectedOdds, setBetsOpen, betsOpen, handleClearAllBets, walletBalance, loading, setLoading, setRole, setPhoneSetUp}) {
+export default function Navbar({ openLoginModal, openSignupModal, user, setUser, selectedOdds, setBetsOpen, betsOpen, handleClearAllBets, walletBalance, loading, setLoading, setRole, setPhoneSetUp, setIsPremium}) {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -49,8 +48,13 @@ export default function NavBar({ openLoginModal, openSignupModal, user, setUser,
       setBetsOpen(false);
       handleClearAllBets();
       setLoading(false);
+      setIsPremium({
+        isPremium: false,
+        isPremiumTrial: false,
+        trialExpiresAt: null,
+      })
       setRole(null)
-      
+
       if (window.location.pathname !== '/') {
         window.location.href = '/';
       }
@@ -64,7 +68,7 @@ export default function NavBar({ openLoginModal, openSignupModal, user, setUser,
     // Get the user when the component mounts
     useEffect(() => {
       // console.log(user)
-    }, [user, loading]);
+    }, [user]);
 
   
   return (
@@ -77,7 +81,7 @@ export default function NavBar({ openLoginModal, openSignupModal, user, setUser,
         {user === null ? ( <div>
             <button onClick ={openLoginModal} className='btn btn-prim text-white fw-bold p-2 m-2'>Log in</button>
             <button onClick={openSignupModal} className='btn border sfw-bold text-white p-2'>Create Account</button>
-        </div> ) : 
+        </div> ) : loading ? (<></>) : 
         (<div className='d-flex align-items-center m-2'> 
           <a className='d-flex align-items-center pt-1 balance mouse-pointer text-decoration-none' href = "/account">
           <div className='font-18 fw-bold'>{walletBalance}</div>
@@ -96,7 +100,7 @@ export default function NavBar({ openLoginModal, openSignupModal, user, setUser,
             </ul>
           </div>
           </div>
-          <div className="btn-group ps-1">
+          <div className="btn-group ps-1 mouse-pointer">
           <div onClick={() => setShowNotifications(!showNotifications)} className="notification-icon  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#BBBDBF" className="bi bi-bell-fill" viewBox="0 0 16 16">
               <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901"/>
@@ -137,3 +141,4 @@ export default function NavBar({ openLoginModal, openSignupModal, user, setUser,
     </div>
   )
 }
+

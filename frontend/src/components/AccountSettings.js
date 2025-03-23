@@ -3,8 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { getCurrentUser } from "../firebase/authMethods"; // Import Firebase auth functions
 import { resetPassword } from "../firebase/authMethods"; // Import Firebase auth functions
 import currency from "../images/moneybag.png"
+import empty from "../images/Empty.png"
+import { useNavigate } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import InfoIcon from '@mui/icons-material/Info';
 
-export default function AccountSettings({user, walletBalance, setWalletBalance, isPremium, setIsPremium, openPremiumModal, closePremiumModal, openAddCoinsModal, closeAddCoinsModal, coinsToAdd}) {
+export default function AccountSettings({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, openPremiumModal, closePremiumModal, openAddCoinsModal, closeAddCoinsModal, coinsToAdd}) {
   const [transactions, setTransactions] = useState([]);
   const [reset, setReset] = useState(false)
   const [switcher, setSwitcher] = useState('account');
@@ -15,7 +21,23 @@ export default function AccountSettings({user, walletBalance, setWalletBalance, 
   const [message, setMessage] = useState("");
   const [order, setOrder] = useState("");
   const [sortedBets, setSortedBets] = useState([]);
+  const navigate = useNavigate();
 
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        // Redirect if no user is logged in
+        navigate("/");
+        setUser(null)
+      } else {
+        setUser(currentUser);
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+  }, [navigate]);
   
   useEffect(() => {
     
@@ -25,10 +47,13 @@ export default function AccountSettings({user, walletBalance, setWalletBalance, 
         // const currentUser = await getCurrentUser();
         // setUser(currentUser)
         // console.log(user)
+        const token = await user.getIdToken(); // Get Firebase Auth Token
+
         const response =  await fetch('/api/transactions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Include Firebase token
           },
           body: JSON.stringify({user}),
         });
@@ -50,6 +75,8 @@ export default function AccountSettings({user, walletBalance, setWalletBalance, 
     // console.log(user)
   }, [user, walletBalance]);
 
+
+
   useEffect(() => {
     const verifyPayment = async () => {
       const query = new URLSearchParams(window.location.search);
@@ -57,30 +84,40 @@ export default function AccountSettings({user, walletBalance, setWalletBalance, 
       
       if (query.get("success") && sessionId) {
         // console.log(user.uid)
-        const response = await fetch('/api/verify-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId, uid: user.uid }), // Include `uid`
-        });
-  
-        const data = await response.json();
-        if (data.isValid) {
-          setMessage("Order placed! You will receive an email confirmation.");
-          setOrder("success")
-          if(data.premiumChange){
-            setIsPremium({ isPremium: true, isPremiumTrial: false, trialExpiresAt: null });
-          } 
-          if(data.coinsAdded){
-            var curWalletBalance = localStorage.getItem("walletBalance")
-            setWalletBalance((curWalletBalance*1 + data.coinsAdded*1).toFixed(2))
+        try {
+          const token = await user.getIdToken(); // Get Firebase Auth Token
+          const response = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // Include Firebase token
+             },
+            body: JSON.stringify({ sessionId, uid: user.uid }), // Include `uid`
+          });
+    
+          const data = await response.json();
+          if (data.isValid) {
+            setMessage("Order placed! You will receive an email confirmation.");
+            setOrder("success")
+            console.log(data)
+            if(data.premiumChange){
+              setIsPremium({ isPremium: true, isPremiumTrial: false, trialExpiresAt: null });
+            } 
+            if(data.coinsAdded){
+              var curWalletBalance = localStorage.getItem("walletBalance")
+              setWalletBalance((curWalletBalance*1 + data.coinsAdded*1).toFixed(2))
+            }
+          } else {
+            setOrder("failed")
+            setMessage("Payment verification failed. Please contact support.");
           }
-        } else {
-          setOrder("failed")
-          setMessage("Payment verification failed. Please contact support.");
+        } catch (error) {
+          console.error("Error verifying payment:", error);
+          setOrder("failed");
+          setMessage("An error occurred. Please try again later.");
         }
       } else if (query.get("cancelled")) {
         setOrder("cancelled")
-        setMessage("Order cancelled -- continue to shop around and checkout when you're ready.");
+        setMessage("Order cancelled.");
       }
       // Remove the query parameters from the URL
       window.history.replaceState({}, document.title, "/account");
@@ -113,10 +150,13 @@ export default function AccountSettings({user, walletBalance, setWalletBalance, 
       // const currentUser = await getCurrentUser();
       // setUser(currentUser)
       // console.log(user)
+      const token = await user.getIdToken(); // Get Firebase Auth Token
+
       const response =  await fetch('/api/bets-history', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Include Firebase token
         },
         body: JSON.stringify({user}),
       });
@@ -141,12 +181,12 @@ function filterBets(betHistory){
   // Filter bets based on search and dropdown selection
   const filteredBets = uniqueBets.filter((bet) => {
     const matchesSearch = bet["bet_type"].toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          bet["fixture"].toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          bet["bet_market"].toLowerCase().includes(searchTerm.toLowerCase());
+      bet["fixture"].toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bet["bet_market"].toLowerCase().includes(searchTerm.toLowerCase());
   
     const matchesFilter = filterType === 'settled' ? (bet.status === 'won' || bet.status === 'lost')
-                       : filterType === 'pending' ? (bet.status === 'pending')
-                       : true; // Default: show all
+      : filterType === 'pending' ? (bet.status === 'pending')
+      : true; // Default: show all
   
     return matchesSearch && matchesFilter;
   });
@@ -196,7 +236,7 @@ function filterBets(betHistory){
       <div className='row bg-green shadow-down rounded py-4 mb-5 match-list m-auto'>
         {switcher === 'account' ? ( 
           <>
-          <div className='col-12 col-xxl-5 matchMarginAccount my-1'>
+          <div className='col-12 col-xxl-5 matchMarginAccount my-2'>
           <div className="row g-3 align-items-center mb-3 d-flex">
             <div className="col-4">
               <label htmlFor="emailContainer" className="col-form-label text-grey text-uppercase">Email</label>
@@ -236,7 +276,7 @@ function filterBets(betHistory){
               </div>    
             </div>
           </div>
-          <div className="row g-3 align-items-center mt-3">
+          {/* <div className="row g-3 align-items-center mt-3">
             <div className="col-4">
               <label htmlFor="pwContainer" className="col-form-label text-grey text-uppercase">Phone Number</label>
             </div>
@@ -256,7 +296,7 @@ function filterBets(betHistory){
                 </div>
               </div>    
             </div>
-          </div>
+          </div> */}
           <div className="row g-3 align-items-center mb-3">
             <div className='col-4'></div>
             <div className='col-8'>
@@ -266,7 +306,16 @@ function filterBets(betHistory){
           </div>
           <div className="row g-3 align-items-center my-1">
             <div className="col-4">
-              <label htmlFor="balance" className="col-form-label text-grey text-uppercase">Wallet Balance</label>
+              <label htmlFor="balance" className="col-form-label text-grey text-uppercase">
+                Wallet
+                <Tooltip 
+                  title="This website is a fantasy betting platform designed for entertainment and educational purposes only. The bets you make here use virtual currency, and any gains or losses are purely fictional." 
+                  placement="right-end" arrow>
+                  <IconButton sx={{ fontSize: 15 }}>
+                    <InfoIcon sx={{ fontSize: 15 }}/>
+                  </IconButton>
+                </Tooltip>
+                </label>
             </div>
             <div className='col-8 d-flex align-items-center justify-content-start'>
               <div className="col-10 col-sm-11 d-flex align-items-stretch justify-content-between balanceInput">
@@ -330,10 +379,11 @@ function filterBets(betHistory){
           <div className='col-12 col-xxl-7 matchMarginAccount'>
             <div className='d-flex justify-content-between align-items-center'>
               <div className='col-md-4 col-6'><label className="col-form-label text-grey text-uppercase">Transaction History</label></div>
-              <div className='col-md-8 col-6 key text-white text-end'> <span className='badge bg-dark'>&nbsp;</span> Settled  <span className='badge bg-secondary'>&nbsp;</span> Pending <span className='badge bg-success'>&nbsp;</span> Won <span className='badge bg-danger'>&nbsp;</span> Lost</div>
+              <div className='col-md-8 col-6 key text-white text-end font-10'><span className='badge bg-success'>&nbsp;</span> Won <span className='badge bg-danger'>&nbsp;</span> Lost <br/><span className='badge bg-dark'>&nbsp;</span> Settled  <span className='badge bg-secondary'>&nbsp;</span> Pending </div>
             </div>
-          <div className='tableWrap'>
-          <table size="sm" className='transactions'>
+            <div className='tableWrap'>
+              {transactions.length > 0 ? (
+                <table size="sm" className='transactions'>
                 <thead>
                   <tr>
                     <th>DATE</th>
@@ -398,35 +448,40 @@ function filterBets(betHistory){
                   )}
                 </tbody>
               </table>
-              </div>
+              ) : (
+                <>
+                <table size="sm" className='transactions'>
+                <thead>
+                  <tr>
+                    <th>DATE</th>
+                    {/* <th>Transaction</th> */}
+                    <th>AMOUNT</th>
+                    <th>TRANSACTION TYPE</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                </table>
+                <div className='text-center mt-5'>
+                  <p className='text-white'><em>Empty...</em> <br/>
+                      <strong>Start Betting!</strong>
+                  </p>
+                  <img src = {empty} height="150px" alt='Empty...' />
+                </div>
+                </>
+              )}
+            </div>
           </div>
           </>
         ) : (
           <>
           <div className='col-12 matchMarginAccount'>
-            <div className='d-flex justify-content-between align-items-center'>
-              <div className='col-md-4 col-6'><label className="col-form-label text-grey text-uppercase">Transaction History</label></div>
-              <div className='selectDiv'>
-              {/* Dropdown Filter */}
-                <div className="btn-group">
-                  <button type="button" className="select dropdown-toggle text-capitalize d-flex justify-content-between" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div> {filterType} </div> 
-                    <div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
-                      <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-                    </svg></div>
-                  </button>
-                  <ul className="dropdown-menu dropdown-menu-end">
-                    <li><button className="dropdown-item" type="button" onClick={() => setFilterType('all')}>All</button></li>
-                    <li><button className="dropdown-item" type="button" onClick={() => setFilterType('settled')}>Settled</button></li>
-                    <li><button className="dropdown-item" type="button" onClick={() => setFilterType('pending')}>Pending</button></li>
-                  </ul>
-                </div>
-              </div>
-           </div>
-            <div className='d-flex justify-content-between align-items-center'>
-              <div className='col-5 col-md-4 searchBet'>
+            {/* <div className='d-flex justify-content-between align-items-center'>
+              <div className='col-md-4 col-6'><label className="col-form-label text-grey text-uppercase">Transaction History</label></div> 
+           </div>  */}
+            <div className='w-100 mb-1'>
+              <div className='d-inline-block col-12 col-md-4 searchBet'>
               {/* Search Input */}
-                <div className="mb-3 searchgroup w-100 text-end d-flex align-items-center">
+                <div className="mb-1 searchgroup w-100 text-end d-flex align-items-center">
                   <span className="searchgroup-text" id="basic-addon1">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
                         fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
@@ -436,10 +491,35 @@ function filterBets(betHistory){
                   <input type="text" className="search" placeholder="Search..."  onChange={(e) => setSearchTerm(e.target.value)} value={searchTerm} />
                 </div>
               </div>
-              <div className='col-md-8 col-7 key text-white text-end'><span className='badge bg-secondary'>&nbsp;</span> Pending <span className='badge bg-success'>&nbsp;</span> Won <span className='badge bg-danger'>&nbsp;</span> Lost</div>
+              <div className='d-inline-block col-12 col-md-8'>
+                <div className=' d-flex justify-content-end align-items-center'>
+                <div className='text-white text-end key me-3'>
+                  <span className='badge bg-secondary'>&nbsp;</span> Pending &nbsp;
+                  <span className='badge bg-success'>&nbsp;</span> Won &nbsp;
+                  <span className='badge bg-danger'>&nbsp;</span> Lost &nbsp;
+                </div>
+                <div className='selectDiv'>
+              {/* Dropdown Filter */}
+                  <div className="btn-group">
+                    <button type="button" className="select dropdown-toggle text-capitalize d-flex justify-content-between" data-bs-toggle="dropdown" aria-expanded="false">
+                      <div> {filterType} </div> 
+                      <div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
+                        <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                      </svg></div>
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end">
+                      <li><button className="dropdown-item" type="button" onClick={() => setFilterType('all')}>All</button></li>
+                      <li><button className="dropdown-item" type="button" onClick={() => setFilterType('settled')}>Settled</button></li>
+                      <li><button className="dropdown-item" type="button" onClick={() => setFilterType('pending')}>Pending</button></li>
+                    </ul>
+                  </div>
+                </div>
+                </div>
+              </div>
             </div>
-          <div className='tableWrap'>
-          <table size="sm" className='transactions'>
+            <div className='tableWrap'>
+              {transactions.length > 0 ? (
+                <table size="sm" className='transactions'>
                 <thead>
                   <tr>
                     <th onClick={toggleSortOrder} className="mouse-pointer">
@@ -458,9 +538,9 @@ function filterBets(betHistory){
                       </div>
                     </th>                    
                     {/* <th>Transaction</th> */}
-                    <th>Bet<br/>Amount</th>
+                    <th>Bet Amount</th>
                     <th>Payout</th>
-                    <th>Bet Type</th>
+                    <th style={{width: '50%'}}>Bet Type</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -504,7 +584,44 @@ function filterBets(betHistory){
                 )}
                 </tbody>
               </table>
+              ) : (
+              <>
+              <table size="sm" className='transactions'>
+                <thead>
+                  <tr>
+                    <th onClick={toggleSortOrder} className="mouse-pointer">
+                      <div className='d-flex align-items-center justify-content-start'>
+                        <div className='me-2'> {sortOrder === 'asc' ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-up" viewBox="0 0 16 16">
+                            <path fillRule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"/>
+                          </svg>
+                          ) : ( 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
+                            <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                          </svg>
+                          )}
+                        </div>
+                        <div>Date</div>
+                      </div>
+                    </th>                    
+                    {/* <th>Transaction</th> */}
+                    <th>Bet Amount</th>
+                    <th>Payout</th>
+                    <th>Bet Type</th>
+                    <th></th>
+                  </tr>
+                </thead>
+              </table>
+              <div className='text-center mt-5'>
+                <p className='text-white'><em>Empty...</em> <br/>
+                    <strong>Start Betting!</strong>
+                </p>
+                <img src = {empty} height="200px" alt='Empty...' />
               </div>
+              </>
+              )}
+              
+            </div>
           </div>
           </>
         )}

@@ -1,26 +1,43 @@
 import React, { useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import moneyDiv from "../images/moneyDiv.png"
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 
-export default function AddCoinsModal({ showModal, closeModal, user, setCoinsToAdd}) {
+export default function AddCoinsModal({ showModal, closeModal, setUser, user, setCoinsToAdd}) {
   const [quantity, setQuantity] = useState(1); // Default to 1
 
   const handleCheckout = async () => {
-    try {
-      const response = await fetch('/create-checkout-session-coins', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity }),
-      });
-      console.log(quantity)
-      const data = await response.json();
-      if (data.url) {
-        setCoinsToAdd(quantity)
-        window.location.href = data.url; // Redirect to Stripe checkout
+    const checkout = async () => {
+      try {
+        const response = await fetch('/create-checkout-session-coins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity }),
+        });
+        console.log(quantity)
+        const data = await response.json();
+        if (data.url) {
+          setCoinsToAdd(quantity)
+          window.location.href = data.url; // Redirect to Stripe checkout
+        }
+      } catch (error) {
+        console.error('Error during checkout:', error);
       }
-    } catch (error) {
-      console.error('Error during checkout:', error);
     }
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        // Redirect if no user is logged in
+        closeModal()
+        setUser(null)
+      } else {
+        setUser(currentUser);
+        checkout()
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+    
   };
 
   return (

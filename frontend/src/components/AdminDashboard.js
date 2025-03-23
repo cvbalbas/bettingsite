@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
+import empty from "../images/Empty.png"
 
-export default function PendingBetsAdmin( {user, setUser} ) {
+export default function PendingBetsAdmin( {user, setUser, setRole} ) {
   const [pendingBets, setPendingBets] = useState({});
   const [selectedWinners, setSelectedWinners] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,24 +12,81 @@ export default function PendingBetsAdmin( {user, setUser} ) {
 
 
   useEffect(() => {
-    console.log(user)
-  }, [user, navigate])
+     const fetchUserData = async (currentUser) => {
+       if (!currentUser) return; // Ensure currentUser is available before fetching
+   
+       try {
+        const token = await currentUser.getIdToken(); // Get Firebase Auth Token
 
+        const response = await fetch('/api/user-info', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Send the token in headers
+          },
+          body: JSON.stringify({ currentUser }),
+        });
+
+        const data = await response.json();
+        setRole(data.results[0]?.admin ?? false); // Ensure role is always set
+        if (!(data.results[0]?.admin ?? false)){
+          navigate("/");
+        }
+       } catch (error) {
+         console.error("Error getting wallet balance:", error);
+       }
+     };
+   
+     const auth = getAuth();
+     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+       if (currentUser) {
+         setUser(currentUser);
+         console.log(currentUser);
+         await fetchUserData(currentUser);
+       } else {
+         setUser(null);
+         setRole(false); // Ensure role is set to false when logged out
+       }
+     });
+   
+     return () => unsubscribe();
+   }, []);
 
   useEffect(() => {
       const fetchPendingBets = async () => {
           try {
-              const response = await fetch('/api/pending-bets');
-              const data = await response.json();
-              if (data.success) {
-                  setPendingBets(data.data);
-              }
+            const token = await user.getIdToken(); // Get Firebase Auth Token
+            const response = await fetch('/api/pending-bets', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Send the token in headers
+              },
+              body: JSON.stringify({ user }),
+            });
+            const data = await response.json();
+            console.log(data)
+            if (data.success) {
+              console.log(data.data)
+              setPendingBets(data.data);
+            } else {
+              alert(data.error)
+            }
           } catch (error) {
               console.error("Error fetching pending bets:", error);
           }
       };
       fetchPendingBets();
   }, []);
+
+  function isEmpty(obj) {
+    for (const prop in obj) {
+      if (Object.hasOwn(obj, prop)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   const handleCheckboxChange = (match_day, fixture, bet_market, bet_type) => {
       setSelectedWinners((prev) => ({
@@ -68,9 +127,13 @@ export default function PendingBetsAdmin( {user, setUser} ) {
           .map(([bet_type]) => bet_type);
 
       try {
+          const token = await user.getIdToken(); // Get Firebase Auth Token
           const response = await fetch('/api/update-bet-results', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Send the token in headers
+              },
               body: JSON.stringify({ match_day, time, fixture, bet_market, winningBets })
           });
 
@@ -78,8 +141,9 @@ export default function PendingBetsAdmin( {user, setUser} ) {
           if (result.success) {
               alert('Results updated successfully!');
           } else {
-              alert('Failed to update results');
-          }
+              alert('Unauthorized access');
+              navigate("/");
+            }
       } catch (error) {
           console.error("Error updating results:", error);
       }
@@ -137,7 +201,7 @@ export default function PendingBetsAdmin( {user, setUser} ) {
       <div>
       <div className='col-lg-10 col-sm-12 m-auto'>
         <div className='text-start text-white mt-4 mb-3 d-flex justify-content-between align-items-center'>
-          <div className='col-12'><h1>Premier League Matches</h1></div>
+          <div className='col-12'><h1>Users' Bets</h1></div>
         </div>
         <div className='bg-green shadow-down rounded pb-3 mb-5'>
           <div className='col-12'>
@@ -156,8 +220,8 @@ export default function PendingBetsAdmin( {user, setUser} ) {
               </div>
             </div>
             <div className='match-list'>
-              
-            {Object.entries(pendingBets).map(([match_day, fixtures]) => (
+            { !isEmpty(pendingBets) ? (
+              Object.entries(pendingBets).map(([match_day, fixtures]) => (
                 <div key={match_day} className="date-group">
                   <div className='text-uppercase text-lightgrey col-12 bg-lightgreen text-start date matchMargin py-2'>
                   {match_day}
@@ -229,7 +293,13 @@ export default function PendingBetsAdmin( {user, setUser} ) {
                     </div>
                   ))}
                 </div>
-            ))}
+              ))) :
+              (<div className='m-auto text-center mt-5'> 
+              <p className='text-white'><em>No pending bets...</em></p>
+              <img src = {empty} height="150px" alt='Empty...' />
+              </div>)
+            }  
+            
               
             </div>
           </div>

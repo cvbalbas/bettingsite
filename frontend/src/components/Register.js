@@ -4,9 +4,11 @@ import { auth } from "../firebase/firebaseConfig"; // Import Firebase auth insta
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { Modal, Button, Form } from 'react-bootstrap';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import InfoIcon from '@mui/icons-material/Info';
 
-
-const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, setDisclaimerOpen, setWalletBalance, phoneSetUp}) => {
+const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, setDisclaimerOpen, setWalletBalance, phoneSetUp, registeredPhone, setRegisteredPhone}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("")
@@ -20,8 +22,10 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
   useEffect(() => {
     // console.log(user)
     try {
-      if (user.phoneNumber === null && step !== "signup"){
+      if (registeredPhone === false && step !== "signup" && user !== null){
         setStep("phoneEntry")
+      } else if (registeredPhone === false && step === "signup" && user !== null) {
+        setStep("verifyOTP")
       } else {
         setStep(`${phoneSetUp ? 'phoneEntry': 'default'}`)
       }
@@ -39,19 +43,27 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
       const user = await verifyOTP(confirmationResult, otp, auth.currentUser);
       setDisclaimerOpen(true);
       try {
-        await saveUser(auth.currentUser);
+        // Save user to MySQL
+        await saveUser(auth.currentUser, phoneNumber);
       } catch {
         // console.log("Already saved")
       }
       
       setStep("default"); // Move to next step
-      setWalletBalance("100.00")
       closeModal();
       setDisclaimerOpen(true)
     } catch (error) {
-      if (error.code === "auth/account-exists-with-different-credential")
-      setError("The number is already connected to another account.");
-      setStep("phoneEntry")
+      if (error.code === "auth/account-exists-with-different-credential") {
+        setError("The number is already connected to another account.");
+        setStep("phoneEntry")
+      } else if (error.code === "auth/invalid-verification-code") {
+        setError("Invalid Verification Code.");
+        setStep("phoneEntry")
+      } else {
+        setError("There has been an error. Try again.");
+        setStep("phoneEntry")
+      }
+      
     }
   };
 
@@ -71,42 +83,69 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    try {
-      await signUpWithEmail(email, password);
-      const currentUser = await signInWithEmail(email, password);
-      setUser(currentUser)
-      // console.log(currentUser)
-      // await saveUser(currentUser);
-      setStep("signup")
-      await sendPhoneOTP();
-      
-      // closeModal(); 
-      // setDisclaimerOpen(true)
-
-      setWalletBalance("100.00")
-    } catch(error) {
-      // console.log(error)
-      switch(error.code) {
-        case 'auth/email-already-in-use':
-          setError("Email already in use.")
-          break;
-        case 'auth/weak-password':
-          setError("Password should be at least 6 characters.")
-          break;
-        default:
-          setError("Something went wrong. Try again later.")
+    if (phoneNumber.length > 2) {
+      try {
+        // Save user to MySQL
+        // console.log(phoneNumber)
+        const phoneExists = await checkPhone(phoneNumber);
+        // console.log(phoneExists)
+  
+        if(!phoneExists){
+          try {
+            setError("")
+            await signUpWithEmail(email, password);
+            const currentUser = await signInWithEmail(email, password);
+            setUser(currentUser)
+            // console.log(currentUser)
+            // await saveUser(currentUser);
+            setStep("signup")
+            await sendPhoneOTP();
+            
+            // closeModal(); 
+            // setDisclaimerOpen(true)
+            
+          } catch(error) {
+            // console.log(error)
+            switch(error.code) {
+              case 'auth/email-already-in-use':
+                setError("Email already in use.")
+                break;
+              case 'auth/weak-password':
+                setError("Password should be at least 6 characters.")
+                break;
+              default:
+                setError("Something went wrong. Try again later.")
+            }
+          }
+        } else {
+          setStep("default")
+          setError("Number already exists.")
+        }
+  
+  
+      } catch(error){
+        // console.log(error)
+        setError("Something went wrong. Try again.")
       }
+    } else {
+      setError("Enter a valid phone number.")
     }
+    
+    
+    
   };
 
   const handleGoogleSignup = async () => {
     const currentUser = await signInWithGoogle();
-    setWalletBalance("100.00")
-    setUser(currentUser);
-    // console.log(currentUser);
+    if (currentUser !==  false){
+      setUser(currentUser);
+      // console.log(currentUser);
+    } else {
+      setError("Google Signup process closed. Try Again.");
+    }
   };
 
-  const saveUser = async (currentUser) => {
+  const saveUser = async (currentUser, phoneNumber) => {
     // console.log(currentUser)
     try {
       const response = await fetch('/api/save-user', {
@@ -114,12 +153,43 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({currentUser}),
+        body: JSON.stringify({currentUser, phoneNumber}),
       });
       const data = await response.json();
       // console.log('User saved successfully:', data);
+      setRegisteredPhone(true)
+      setWalletBalance("100.00")
+      if (data.error){
+        // console.log(data)
+      }
+      if (!response.ok) {
+        throw new Error(data.error || "Something went wrong");
+      }
     } catch (error) {
-      // console.error('Error saving user:', error);
+      console.error('Error saving user:', error);
+    }
+  };
+
+  const checkPhone = async (phoneNumber) => {
+    // console.log(currentUser)
+    try {
+      const response = await fetch('/api/check-phone', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({phoneNumber}),
+      });
+      const data = await response.json();
+      // console.log(data);
+      if (data.message === "exists") {
+        return true
+      } else {
+        return false
+      }
+
+    } catch (error) {
+      console.error('Error checking number:', error);
     }
   };
 
@@ -155,7 +225,16 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
           <Form.Control type="password" placeholder="Enter password" onChange={(e) => setPassword(e.target.value)} required />
         </Form.Group>
         <Form.Group controlId="formPhone" className="mt-3">
-          <Form.Label>Phone Number</Form.Label>
+        <div>
+            <Form.Label>PHONE NUMBER</Form.Label>
+            <Tooltip 
+            title="We securely store phone numbers just like passwords, ensuring they remain inaccessible to developers or anyone else. This means we cannot use them to contact you or send messages. Their sole purpose is to prevent duplicate accounts and maintain fair play." 
+            placement="right-end" arrow>
+              <IconButton sx={{ fontSize: 15 }}>
+                <InfoIcon sx={{ fontSize: 15 }}/>
+              </IconButton>
+            </Tooltip>
+          </div>
           <PhoneInput
             country={"gb"} // Default country
             preferredCountries={["us", "gb", "ph", "in"]}
@@ -186,7 +265,16 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
     ): step === "phoneEntry" ? (
       <Form onSubmit={(e) => { e.preventDefault(); sendPhoneOTP(); }}>
         <Form.Group controlId="formPhone">
-          <Form.Label>Phone Number</Form.Label>
+          <div>
+            <Form.Label>PHONE NUMBER</Form.Label>
+            <Tooltip 
+            title="We securely store phone numbers just like passwords, ensuring they remain inaccessible to developers or anyone else. This means we cannot use them to contact you or send messages. Their sole purpose is to prevent duplicate accounts and maintain fair play." 
+            placement="right-end" arrow>
+              <IconButton size="small">
+                <InfoIcon fontSize="small"/>
+              </IconButton>
+            </Tooltip>
+          </div>
           <PhoneInput
             country={"gb"} // Default country
             preferredCountries={["gb", "us", "ph", "in"]}
@@ -205,10 +293,10 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
     ) : (
       <Form onSubmit={handleVerifyOTP}>
         <Form.Group controlId="formOtp">
-          <Form.Label>Enter OTP</Form.Label>
+          {/* <Form.Label>ENTER OTP</Form.Label> */}
           <Form.Control type="text" 
           name="otp_code"
-          placeholder="Enter OTP" 
+          placeholder="" 
           autoComplete="off"
           inputMode="numeric"
           pattern="[0-9]*"

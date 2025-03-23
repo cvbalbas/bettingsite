@@ -100,6 +100,9 @@ h1 {
   font-family: 'Inter', sans-serif !important;
   font-weight: bold !important;
 }
+.font-10 {
+  font-size: 10px;
+}
 .font-12 {
   font-size: 12px;
 }
@@ -393,7 +396,7 @@ input:focus {
   width: 75%;
 }
 .bets-list {
-  height: calc(100vh - 292px);
+  height: calc(100vh - 240px);
   overflow-y: auto;
 }
 
@@ -491,7 +494,7 @@ input:focus {
   align-items: center;
 }
 .totalBets {
-  height: 2550px;
+  height: 240px;
   background-color: #0E1D1D;
 }
 .placebet {
@@ -622,6 +625,7 @@ svg:hover path {
   content: none !important; 
 } 
 .dropdown-toggle {
+  font-size: 1em;
   width: auto;
 }
 .btn.show {
@@ -634,21 +638,21 @@ svg:hover path {
   border: 1px white solid !important;
 }
 .dropdown-menu {
-  min-width: 120px !important;
+  font-size: 1em;
+  min-width: 100px !important;
 }
 .dropdown-menu .dropdown-item.active {
-  background-color: #346565 !important;
+  background-color: rgb(224, 223, 223) !important; 
 }
 .dropdown-menu .dropdown-item {
   transition-duration: 300ms;
 }
 .dropdown-menu .dropdown-item:hover {
-  background-color: #346565 !important;
-  color: white;
+  background-color: rgb(224, 223, 223) !important; 
 }
 .dropdown-item:active, 
 .dropdown-item:focus {
-  background-color: #346565 !important; 
+  background-color: rgb(224, 223, 223) !important; 
 }
 .matchMargin {
   padding-left: 40px;
@@ -902,7 +906,7 @@ a slight movement of the header row */
 }
 
 .notif {
-  font-size: 8px;
+  /* font-size: 8px; */
   position: relative;
   top: -5px;
   left: -7px;
@@ -925,21 +929,41 @@ a slight movement of the header row */
 .dropdown-notification {
   width: 200px;
   padding: 5px 0px;
-  font-size: 10px;
+  font-size: 0.8em !important;
   text-align: left;
+  scrollbar-gutter: stable;
+  max-height: 50vh;
+  overflow-y: auto;
 }
+.dropdown-notification::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 5px;
+	background-color: transparent;
+  position:relative;
+  left: -10px;
+}
+
+.dropdown-notification::-webkit-scrollbar
+{
+	width: 5px;
+  border-radius: 5px;
+	background-color: transparent;
+}
+
+.dropdown-notification::-webkit-scrollbar-thumb
+{
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #0E1D1D;
+}
+
 .notification-item {
   transition-duration: 0.3s;
   padding: 5px 10px;
 }
 .notification-item:hover {
-  background-color: #346565 !important;
-  color: white;
- 
-}
-
-.notification-item:hover .result-won {
-  color: #FF8135 !important;
+  background-color: rgb(224, 223, 223) !important; 
 }
 .result-won {
   color:green;
@@ -1036,6 +1060,7 @@ a slight movement of the header row */
   .changePw {
     text-align: right;
   }
+  
 }
 
 @media only screen and (max-width: 576px) { /*XS ---------------------------*/
@@ -1098,6 +1123,9 @@ a slight movement of the header row */
   .me-5 {
     margin-right: 1rem !important;
   }
+  .py-4 {
+    padding: 0.8rem 0 !important;
+  }
   .logo-bar svg {
     height: 18px;
   }
@@ -1109,8 +1137,8 @@ a slight movement of the header row */
   }
   .homesmall {
     width: calc(100vw - 10px);
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
   }
   .match {
     padding-top: 5px;
@@ -1118,6 +1146,7 @@ a slight movement of the header row */
   }
   .match-list {
     height: calc(100vh - 200px);
+    padding-bottom: 50px;
   }
   .drop {
     font-size: 0.75rem;

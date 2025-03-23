@@ -53,6 +53,7 @@ function App() {
     isPremiumTrial: false,
     trialExpiresAt: null,
   });
+  const [registeredPhone, setRegisteredPhone] = useState(false);
 
   const [coinsToAdd, setCoinsToAdd] = useState(0);
   const [showAlert, setShowAlert] = useState(false);
@@ -73,9 +74,14 @@ function App() {
       if (!currentUser) return; // Ensure currentUser is available before fetching
   
       try {
+        const token = await currentUser.getIdToken(); // Get Firebase Auth Token
+
         const response = await fetch('/api/user-info', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Send the token in headers
+          },
           body: JSON.stringify({ currentUser }),
         });
   
@@ -88,7 +94,7 @@ function App() {
           isPremiumTrial: Boolean(data.results[0]?.isPremiumTrial),
           trialExpiresAt: data.results[0]?.trialExpiresAt || null,
         });
-  
+        setRegisteredPhone(data.results[0]?.hashed_phone ?? false)
         // console.log("User Info:", data);
       } catch (error) {
         console.error("Error getting wallet balance:", error);
@@ -99,12 +105,8 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        console.log(currentUser);
+        // console.log(currentUser);
         await fetchUserData(currentUser);
-        if (!currentUser.phoneNumber){
-          setSignupModalOpen(true)
-          setPhoneSetUp(true)
-        }
       } else {
         setUser(null);
         setRole(false); // Ensure role is set to false when logged out
@@ -114,6 +116,26 @@ function App() {
   
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      // console.log(registeredPhone, user, loading)
+
+      if (!registeredPhone && user !== null){
+        setSignupModalOpen(true)
+        setPhoneSetUp(true)
+      } else {
+        setSignupModalOpen(false)
+        setPhoneSetUp(false)
+      }
+      if(user === null) {
+        setPhoneSetUp(false)
+      }
+    }
+    
+  }, [registeredPhone, user, loading])
+
+
 
   // Update localStorage whenever selectedOdds changes
   
@@ -148,7 +170,10 @@ function App() {
   const openLoginModal = () => setLoginModalOpen(true);
   const closeLoginModal = () => setLoginModalOpen(false);
 
-  const openSignupModal = () => setSignupModalOpen(true);
+  const openSignupModal = () => {
+    setSignupModalOpen(true);
+    setPhoneSetUp(false)
+  }
   const closeSignupModal = () => setSignupModalOpen(false);
 
   const closeDisclaimerModal = () => {
@@ -175,31 +200,31 @@ function App() {
       <div className='top-nav bg-black'></div>
       <div className='bot-nav bg-black shadow-box'></div>
       <LoginModal showModal={loginModalOpen} closeModal={closeLoginModal} user = {user} setUser = {setUser} setSignupModalOpen={setSignupModalOpen} />
-      <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} setWalletBalance={setWalletBalance} phoneSetUp={phoneSetUp}/>
+      <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} setWalletBalance={setWalletBalance} phoneSetUp={phoneSetUp} registeredPhone={registeredPhone} setRegisteredPhone={setRegisteredPhone} />
       <Disclaimer showModal={disclaimerOpen} closeModal={closeDisclaimerModal} user = {user} setUser = {setUser}/>
-      <PremiumModal showModal={premiumModal} closeModal={closePremiumModal} user = {user} isPremium={isPremium} setIsPremium={setIsPremium} />
-      <AddCoinsModal showModal={addCoinsModal} closeModal={closeAddCoinsModal} user = {user} setCoinsToAdd={setCoinsToAdd}/>
+      <PremiumModal showModal={premiumModal} closeModal={closePremiumModal} user = {user} isPremium={isPremium} setIsPremium={setIsPremium} openSignupModal={openSignupModal} />
+      <AddCoinsModal showModal={addCoinsModal} closeModal={closeAddCoinsModal} setUser={setUser} user = {user} setCoinsToAdd={setCoinsToAdd}/>
 
 
       <div className="App d-flex">
         <div className={`m-auto ${betsOpen ? 'home':'homesmall'}`}>
-        <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} />
+        <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} setIsPremium={setIsPremium} />
         <BrowserRouter>
           <Routes>
             <Route path = '/' element={
-              <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass}/>
+              <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass} setPhoneSetUp={setPhoneSetUp} setRole={setRole} openSignupModal={openSignupModal} setLoading={setLoading} />
               }>
             </Route>
             <Route path = '/admin' element={
               role === null ? null : role ? (
-              <AdminDashboard user={user} setUser = {setUser}/>
+              <AdminDashboard user={user} setUser = {setUser} setRole={setRole}/>
             ) : (
               <Navigate to="/" replace />
             )
               }>
             </Route>
             <Route path = '/account' element={
-              <AccountSettings user={user} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} openAddCoinsModal={openAddCoinsModal} closeAddCoinsModal={closeAddCoinsModal} coinsToAdd={coinsToAdd}/>}>
+              <AccountSettings user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} openAddCoinsModal={openAddCoinsModal} closeAddCoinsModal={closeAddCoinsModal} coinsToAdd={coinsToAdd}/>}>
             </Route>
 
             <Route path = '/admin' element={
@@ -215,7 +240,8 @@ function App() {
           <BetsSidebar selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} 
           closeSidebar={closeSidebar}  betAmounts = {betAmounts} setBetAmounts = {setBetAmounts} 
           estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} 
-          openSignupModal={openSignupModal} handleClearAllBets={handleClearAllBets} user={user} setWalletBalance={setWalletBalance} setShowAlert={setShowAlert} setAlertText={setAlertText} setAnimationClass={setAnimationClass} />
+          openSignupModal={openSignupModal} handleClearAllBets={handleClearAllBets} user={user} setWalletBalance={setWalletBalance} 
+          setShowAlert={setShowAlert} setAlertText={setAlertText} setAnimationClass={setAnimationClass} setUser={setUser} />
         </div>
       </div>
       <div id="recaptcha-container"></div> {/* reCAPTCHA container */}

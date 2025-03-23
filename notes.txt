@@ -121,3 +121,13 @@ solution: check when betting. Check if their bets is within the markets table, i
 -no need to save odds, it's saved in the bet transactions
 -diff page for setting winners
 
+
+
+Check if number is a duplicate before sending OTP
+
+
+
+
+Premium Modal Opening everytime
+GetAuth for Coins
+Add the middleware

@@ -4,8 +4,11 @@ import { getAdditionalUserInfo, GoogleAuthProvider, signInWithPopup, createUserW
   signInWithPhoneNumber, 
   updatePhoneNumber, 
   PhoneAuthProvider } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore"; // For Firestore
+import { getDatabase, ref, set } from "firebase/database"; // For Firebase Realtime Database
 import { auth } from "./firebaseConfig"; // Import Firebase auth instance
 import emailjs from '@emailjs/browser';
+import bcrypt from "bcryptjs"; // Import bcrypt for hashing
 
 
 
@@ -24,7 +27,7 @@ export const signUpWithEmail = async (email, password) => {
 };
 //Send Email on Sign Up
   const sendWelcomeEmail = async (userEmail) => {
-    console.log(userEmail)
+    // console.log(userEmail)
     const templateParams = {
       to_name: userEmail, // This should match the placeholder in your EmailJS template
     };
@@ -50,7 +53,7 @@ export const signInWithEmail = async (email, password) => {
 
     const result = await signInWithEmailAndPassword(auth, email, password);
     const user = result.user;
-    console.log("Email Signed in User:", user);
+    // console.log("Email Signed in User:", user);
     return user;
   } catch (error) {
     console.error("Error during Email Sign-in:", error.message);
@@ -60,7 +63,7 @@ export const signInWithEmail = async (email, password) => {
 
 // Sign In with Google
 export const signInWithGoogle = async () => {
-  console.log(process.env.REACT_APP_FIREBASE_AUTH_DOMAIN)
+
   const provider = new GoogleAuthProvider();
   try {
     await setPersistence(auth, browserLocalPersistence)
@@ -69,18 +72,22 @@ export const signInWithGoogle = async () => {
     const user = result.user;
     const additionalInfo = getAdditionalUserInfo(result);
     if (additionalInfo.isNewUser) {
-      console.log("User is signing up for the first time!");
+      // console.log("User is signing up for the first time!");
       sendWelcomeEmail(user.email);
       // Handle new user (e.g., save to database, send welcome email, etc.)
     } else {
-      console.log("User is signing in.");
+      // console.log("User is signing in.");
       // Handle returning user
     }
-    console.log("Google Signed in User:", user);
+    // console.log("Google Signed in User:", user);
     return user;
   } catch (error) {
-    console.error("Error during Google Sign-in:", error.message);
-    throw error;
+    if (error.code === "auth/popup-closed-by-user") {
+      // console.log("User closed the popup. Signup process stopped.");
+      return false; // Don't show an error to the user, just exit
+    }
+    console.error("Firebase Authentication Error:", error);
+    //throw error;
   }
 };
 
@@ -88,7 +95,7 @@ export const signInWithGoogle = async () => {
 export const resetPassword = async (email) => {
   try {
     await sendPasswordResetEmail(auth, email);
-    console.log("Password Reset Email Sent!");
+    // console.log("Password Reset Email Sent!");
   } catch (error) {
     console.error("Error during password reset:", error.message);
     throw error;
@@ -98,7 +105,7 @@ export const resetPassword = async (email) => {
 export const logOut = async () => {
   return signOut(auth)
     .then(() => {
-      console.log("User signed out successfully");
+      // console.log("User signed out successfully");
     })
     .catch((error) => {
       console.error("Error signing out: ", error);
@@ -111,10 +118,10 @@ export const getCurrentUser = async () => {
 
   if (user) {
     // User is signed in, return the user object
-    console.log("User Info: ", user);
+    // console.log("User Info: ", user);
     return user;
   } else {
-    console.log("No user is signed in.");
+    // console.log("No user is signed in.");
     return null;
   }
 };
@@ -149,8 +156,13 @@ export const sendOTP = async (phoneNumber) => {
 export const verifyOTP = async (confirmationResult, otp, user) => {
   try {
     const credential = PhoneAuthProvider.credential(confirmationResult.verificationId, otp);
-    await updatePhoneNumber(user, credential); // Link phone to user account
-    console.log("Phone number linked successfully!");
+    // await updatePhoneNumber(user, credential); // Link phone to user account
+    // console.log("Phone number linked successfully!");
+
+    if (credential) {
+      // console.log("OTP Verified");
+    }
+
     return true;
   } catch (error) {
     console.error("Error verifying OTP:", error);

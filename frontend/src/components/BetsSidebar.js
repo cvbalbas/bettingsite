@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import currency from "../images/moneybag.png"
 import empty from "../images/Empty.png"
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 
 
 
-export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass}) {
+export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass, setUser}) {
 
   // useEffect(() => {
     
@@ -47,22 +48,41 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
       return newPayouts;
     });
   };
+  const checkUser = () => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        // setUser to nothing and open Signup Modal
+        setUser(null)
+        openSignupModal()
+      } else {
+        setUser(currentUser);
+        saveBets()
+        console.log(currentUser)
+      }
+    });
 
+    return () => unsubscribe(); // Cleanup on unmount
+  }
   const saveBets = async () => {
+    console.log(user)
     try {
+      const token = await user.getIdToken(); // Get Firebase Auth Token
+
       const response = await fetch('/api/save-odds', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Send the token in headers
         },
         body: JSON.stringify({
             selectedOdds,
             betAmounts,
             user,
-          }),
+          })
       });
       const data = await response.json();
-      // console.log('Odds saved successfully:', data);
+      console.log('Odds saved successfully:', data);
       setWalletBalance(data.results[0]["wallet_balance"])
       closeSidebar();
       handleClearAllBets();
@@ -147,7 +167,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                 ))
             ) : (
             <div className='text-center mt-5'>
-                <img src = {empty} className='empty' alt='emoty' />
+                <img src = {empty} className='empty' alt='Empty...' />
                 <p className='text-white'><em>Empty...</em> <br/>
                     <strong>Start Betting!</strong>
                 </p>
@@ -164,10 +184,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                     <div className='font-15 text-orange text-end'>Est. Payout</div>
                 </div>
                 <div className='text-center px-4 py-2' >
-                    <div className='placebet mouse-pointer' onClick={() => { 
-                        if(!user){openSignupModal()}
-                        else {saveBets()}
-                    }}>Place Bet</div>
+                    <div className='placebet mouse-pointer' onClick={checkUser}>Place Bet</div>
                 </div>
             </div>
         </div>

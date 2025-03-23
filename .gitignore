@@ -16,6 +16,8 @@ frontend/.env
 .env.test.local
 .env.production.local
 
+backend/betting-site-1fd0c-firebase-adminsdk-9nhsa-766055e5a9.json
+
 # Build files
 backend/dist/
 frontend/dist/
