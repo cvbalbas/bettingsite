@@ -14,7 +14,6 @@ const LoginModal = ({ showModal, closeModal, user, setUser, setSignupModalOpen }
     try {
       const currentuser = await signInWithEmail(email, password);
       setUser(currentuser)
-      // console.log(currentuser)
       closeModal(); 
     } catch (error){
       console.log(error.code)
@@ -33,7 +32,6 @@ const LoginModal = ({ showModal, closeModal, user, setUser, setSignupModalOpen }
     const currentUser = await signInWithGoogle();
     if (currentUser !==  false){
       setUser(currentUser);
-      // console.log(currentUser);
     } else {
       setError("Google Signin process closed. Try Again.");
     }

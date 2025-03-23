@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import currency from "../images/moneybag.png"
-import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 import axios from 'axios';
 
 export default function PremiumModal({ showModal, closeModal, user, isPremium, setIsPremium, openSignupModal}) {
   const [loading] = useState('false')
 
   const handlePremiumTrial = () => {
-    const auth = getAuth(); // Initialize the Firebase auth
+    const auth = getAuth(); 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
           try {
             const oneMonthFromNow = new Date();
             oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
             
-            const token = await user.getIdToken(); // Get Firebase Auth Token
+            const token = await user.getIdToken(); 
             const response = await fetch('/api/upgradePremiumTrial', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Send the token in headers
+                'Authorization': `Bearer ${token}` 
               },
               body: JSON.stringify({"expiresAt": oneMonthFromNow.toISOString()}),
             });
@@ -30,9 +30,7 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
               isPremiumTrial: true,
               trialExpiresAt: oneMonthFromNow.toISOString(),
             })
-            // console.log('User Info:', data);
             closeModal();
-            //window.location.href = "/account"
           } catch (error) {
             console.error('Error getting wallet balance:', error);
           }
@@ -40,7 +38,6 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
           openSignupModal()
         }
       });
-    // Cleanup the listener on component unmount
     return () => unsubscribe();
   }
 
@@ -48,7 +45,6 @@ export default function PremiumModal({ showModal, closeModal, user, isPremium, s
     try {
       const response = await axios.post('/create-checkout-session');
       if (response.data.url) {
-        // Redirect the user to the Stripe checkout page
         window.location.href = response.data.url;
       }
     } catch (error) {

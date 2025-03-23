@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-
-import { getCurrentUser } from "../firebase/authMethods"; // Import Firebase auth functions
-import { resetPassword } from "../firebase/authMethods"; // Import Firebase auth functions
+import { getCurrentUser } from "../firebase/authMethods"; 
+import { resetPassword } from "../firebase/authMethods"; 
 import currency from "../images/moneybag.png"
 import empty from "../images/Empty.png"
 import { useNavigate } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
@@ -28,7 +27,6 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
-        // Redirect if no user is logged in
         navigate("/");
         setUser(null)
       } else {
@@ -36,29 +34,24 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
       }
     });
 
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe(); 
   }, [navigate]);
   
   useEffect(() => {
     
-    // Fetch user data and last 10 transactions from the backend
     const fetchUserData = async () => {
       try {
-        // const currentUser = await getCurrentUser();
-        // setUser(currentUser)
-        // console.log(user)
-        const token = await user.getIdToken(); // Get Firebase Auth Token
+        const token = await user.getIdToken(); 
 
         const response =  await fetch('/api/transactions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // Include Firebase token
+            'Authorization': `Bearer ${token}` 
           },
           body: JSON.stringify({user}),
         });
         const data = await response.json();
-        // console.log(data.results)
         setTransactions(data.results);
       } catch (error) {
         console.error('Error fetching user data', error);
@@ -71,8 +64,6 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
       fetchUserData();
     }
     
-    
-    // console.log(user)
   }, [user, walletBalance]);
 
 
@@ -83,15 +74,14 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
       const sessionId = query.get("session_id");
       
       if (query.get("success") && sessionId) {
-        // console.log(user.uid)
         try {
-          const token = await user.getIdToken(); // Get Firebase Auth Token
+          const token = await user.getIdToken(); 
           const response = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}` // Include Firebase token
+              'Authorization': `Bearer ${token}` 
              },
-            body: JSON.stringify({ sessionId, uid: user.uid }), // Include `uid`
+            body: JSON.stringify({ sessionId, uid: user.uid }), 
           });
     
           const data = await response.json();
@@ -119,19 +109,12 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
         setOrder("cancelled")
         setMessage("Order cancelled.");
       }
-      // Remove the query parameters from the URL
       window.history.replaceState({}, document.title, "/account");
     };
 
-  
-   
-    
     if(user) {
       verifyPayment();
     }
-    
-    
-    // console.log(user)
   }, [user, setIsPremium]);
 
   const handleResetPassword = async () => {
@@ -147,21 +130,17 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
   };
   const getBetsHistory = async () => {
     try {
-      // const currentUser = await getCurrentUser();
-      // setUser(currentUser)
-      // console.log(user)
-      const token = await user.getIdToken(); // Get Firebase Auth Token
+      const token = await user.getIdToken(); 
 
       const response =  await fetch('/api/bets-history', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Include Firebase token
+          'Authorization': `Bearer ${token}` 
         },
         body: JSON.stringify({user}),
       });
       const data = await response.json();
-      // console.log(data.results)
       setBetHistory(data.results);
       filterBets(data.results);
     } catch (error) {
@@ -174,11 +153,9 @@ useEffect(() => {
 }, [betHistory, filterType, searchTerm])
 
 
-// Remove duplicates by using a Set
 function filterBets(betHistory){
   const uniqueBets = Array.from(new Map(betHistory.map(bet => [bet.bet_id, bet])).values());
 
-  // Filter bets based on search and dropdown selection
   const filteredBets = uniqueBets.filter((bet) => {
     const matchesSearch = bet["bet_type"].toLowerCase().includes(searchTerm.toLowerCase()) ||
       bet["fixture"].toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -186,18 +163,16 @@ function filterBets(betHistory){
   
     const matchesFilter = filterType === 'settled' ? (bet.status === 'won' || bet.status === 'lost')
       : filterType === 'pending' ? (bet.status === 'pending')
-      : true; // Default: show all
+      : true; 
   
     return matchesSearch && matchesFilter;
   });
   
-  // Sort by bet date
   const sortedBets = filteredBets.sort((a, b) => {
     const dateA = new Date(a.placed_at);
     const dateB = new Date(b.placed_at);
     return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
   });
-  // console.log(sortedBets)
   setSortedBets(sortedBets)
 }
 
@@ -209,7 +184,6 @@ function filterBets(betHistory){
     const [local, domain] = email.split('@');
   
     if (local.length <= 2) {
-      // If the local part is too short, just return the email without changes
       return email;
     }
   
@@ -220,8 +194,8 @@ function filterBets(betHistory){
   const obfuscatePhoneNumber = (phoneNumber) => {
     if (!phoneNumber || phoneNumber.length < 4) return phoneNumber; 
   
-    const visibleDigits = 4; // Number of digits to keep visible at the start
-    const lastDigits = 2; // Number of digits to keep visible at the end
+    const visibleDigits = 4; 
+    const lastDigits = 2; 
     const maskedPart = "*".repeat(phoneNumber.length - (visibleDigits + lastDigits));
   
     return phoneNumber.slice(0, visibleDigits) + maskedPart + phoneNumber.slice(-lastDigits);
@@ -276,27 +250,6 @@ function filterBets(betHistory){
               </div>    
             </div>
           </div>
-          {/* <div className="row g-3 align-items-center mt-3">
-            <div className="col-4">
-              <label htmlFor="pwContainer" className="col-form-label text-grey text-uppercase">Phone Number</label>
-            </div>
-            <div className="col-8">
-              <div className='d-flex align-items-center justify-content-start'>
-                <div className='col-10 col-sm-11 bg-darkblue rounded'>
-                  <input 
-                    type="text" 
-                    id="pwContainer" 
-                    className="form-control accountInput" 
-                    value={user !== null ?  obfuscatePhoneNumber(user.phoneNumber) : ''}
-                    disabled
-                  />   
-                </div>
-                <div className='editPass col-2 col-sm-1  p-3 mouse-pointer'>
-                  
-                </div>
-              </div>    
-            </div>
-          </div> */}
           <div className="row g-3 align-items-center mb-3">
             <div className='col-4'></div>
             <div className='col-8'>
@@ -387,7 +340,6 @@ function filterBets(betHistory){
                 <thead>
                   <tr>
                     <th>DATE</th>
-                    {/* <th>Transaction</th> */}
                     <th>AMOUNT</th>
                     <th>TRANSACTION TYPE</th>
                     <th></th>
@@ -398,18 +350,13 @@ function filterBets(betHistory){
                   return transaction.transaction_type === "bet" ? (
                     <tr key={transaction.transaction_id}>
                       <td>{new Date(transaction.transaction_date).toLocaleString().split(",")[0]} </td>
-                      {/* <td>{transaction.transaction_type}</td> */}
                       <td>- {transaction.amount}</td>
-                      {/* <td><span className='fw-bold text-orange'>BET</span><br/> <span className='fst-italic'> {transaction.fixture}</span> <br/> <span className='fst-italic '>{transaction["bet_market"]}</span> <br/> <span className='fw-bold '> {transaction["bet_type"]} </span> <br/> {transaction["bet_odds"]}</td> */}
                       <td><span className=''>Bet</span></td>
                       <td> <span className={`badge ${
                         transaction.status === 'pending'
                           ? 'bg-secondary'
                           : 'bg-dark'
                       }`}>
-                        {/* {transaction.status === 'pending'
-                        ? 'PENDING'
-                        : 'SETTLED'} */} 
                         &nbsp;
                     </span>
                       </td>
@@ -418,7 +365,6 @@ function filterBets(betHistory){
                   (
                     <tr key={transaction.transaction_id}>
                       <td>{new Date(transaction.transaction_date).toLocaleString().split(",")[0]} </td>
-                      {/* <td>{transaction.transaction_type}</td> */}
                       <td className={`${transaction.status === 'won' ? 'text-green' : 'text-red'}`} >{transaction.status === 'won' ? ' + ' : ' - '}{transaction.amount}</td>
                       <td><span className=''>Result</span></td>
                       <td> <span className={`badge ${
@@ -430,7 +376,6 @@ function filterBets(betHistory){
                           ? 'bg-danger'
                           : ''
                       }`}>
-                          {/* {transaction.status.toUpperCase()} */}
                           &nbsp;
                         </span>
                       </td>
@@ -438,7 +383,6 @@ function filterBets(betHistory){
                   ) : (
                     <tr key={transaction.transaction_id}>
                       <td>{new Date(transaction.transaction_date).toLocaleString().split(",")[0]} </td>
-                      {/* <td>{transaction.transaction_type}</td> */}
                       <td>{transaction.transaction_type === 'deposit' ? ' + ' : ' - '}{transaction.amount}</td>
                       <td><span className='text-capitalize'>{transaction.transaction_type}</span></td>
                       <td></td>
@@ -454,7 +398,6 @@ function filterBets(betHistory){
                 <thead>
                   <tr>
                     <th>DATE</th>
-                    {/* <th>Transaction</th> */}
                     <th>AMOUNT</th>
                     <th>TRANSACTION TYPE</th>
                     <th></th>
@@ -475,12 +418,8 @@ function filterBets(betHistory){
         ) : (
           <>
           <div className='col-12 matchMarginAccount'>
-            {/* <div className='d-flex justify-content-between align-items-center'>
-              <div className='col-md-4 col-6'><label className="col-form-label text-grey text-uppercase">Transaction History</label></div> 
-           </div>  */}
             <div className='w-100 mb-1'>
               <div className='d-inline-block col-12 col-md-4 searchBet'>
-              {/* Search Input */}
                 <div className="mb-1 searchgroup w-100 text-end d-flex align-items-center">
                   <span className="searchgroup-text" id="basic-addon1">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
@@ -499,7 +438,6 @@ function filterBets(betHistory){
                   <span className='badge bg-danger'>&nbsp;</span> Lost &nbsp;
                 </div>
                 <div className='selectDiv'>
-              {/* Dropdown Filter */}
                   <div className="btn-group">
                     <button type="button" className="select dropdown-toggle text-capitalize d-flex justify-content-between" data-bs-toggle="dropdown" aria-expanded="false">
                       <div> {filterType} </div> 
@@ -537,7 +475,6 @@ function filterBets(betHistory){
                         <div>Date</div>
                       </div>
                     </th>                    
-                    {/* <th>Transaction</th> */}
                     <th>Bet Amount</th>
                     <th>Payout</th>
                     <th style={{width: '50%'}}>Bet Type</th>
@@ -549,19 +486,14 @@ function filterBets(betHistory){
                     bet.transaction_type === "bet" ? (
                     <tr key={bet.bet_id}>
                       <td>{new Date(bet.placed_at).toLocaleString().split(",")[0]} <br/> -</td>
-                      {/* <td>{bet.transaction_type}</td> */}
                       <td>{bet.bet_amount}</td>
                       <td>{bet.potential_payout}</td>
                       <td><span className='fst-italic'> {bet.fixture}</span> <br/> <span className='fst-italic '>{bet["bet_market"]}</span> <br/> <span className='fw-bold text-orange'> {bet["bet_type"]} </span></td>
-                      {/* <td><span className='fw-bold'>BET</span></td> */}
                       <td className='badges'> <span className={`badge ${
                         bet.status === 'pending'
                           ? 'bg-secondary'
                           : 'bg-dark'
                       }`}>
-                        {/* {bet.status === 'pending'
-                        ? 'PENDING'
-                        : 'SETTLED'} */} 
                         &nbsp;
                     </span>
                       </td>
@@ -604,7 +536,6 @@ function filterBets(betHistory){
                         <div>Date</div>
                       </div>
                     </th>                    
-                    {/* <th>Transaction</th> */}
                     <th>Bet Amount</th>
                     <th>Payout</th>
                     <th>Bet Type</th>
@@ -620,14 +551,11 @@ function filterBets(betHistory){
               </div>
               </>
               )}
-              
             </div>
           </div>
           </>
         )}
-        
       </div>
-        
-      </div>
+    </div>
   );
 }

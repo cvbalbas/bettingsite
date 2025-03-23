@@ -30,7 +30,6 @@ export default function Navbar({ openLoginModal, openSignupModal, user, setUser,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid: user.uid }),
     });
-    // setNotifications([]); // Clear UI after marking read
   };
   
   useEffect(() => {
@@ -60,12 +59,10 @@ export default function Navbar({ openLoginModal, openSignupModal, user, setUser,
       }
     })
     .catch((error) => {
-      // console.error('Logout failed:', error);
       setLoading(false);
     });
   }
 
-    // Get the user when the component mounts
     useEffect(() => {
       // console.log(user)
     }, [user]);
@@ -131,9 +128,6 @@ export default function Navbar({ openLoginModal, openSignupModal, user, setUser,
               ( <sup></sup>
             )}
           </div>
-
-            {/* <button onClick={handleLogOut} className='btn border fw-bold text-white p-2 m-2'>Logout</button> */}
-
         </div>
         )}
         </>)}

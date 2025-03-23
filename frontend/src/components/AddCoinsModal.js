@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import moneyDiv from "../images/moneyDiv.png"
-import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 
 export default function AddCoinsModal({ showModal, closeModal, setUser, user, setCoinsToAdd}) {
-  const [quantity, setQuantity] = useState(1); // Default to 1
+  const [quantity, setQuantity] = useState(1); 
 
   const handleCheckout = async () => {
     const checkout = async () => {
@@ -18,7 +18,7 @@ export default function AddCoinsModal({ showModal, closeModal, setUser, user, se
         const data = await response.json();
         if (data.url) {
           setCoinsToAdd(quantity)
-          window.location.href = data.url; // Redirect to Stripe checkout
+          window.location.href = data.url; 
         }
       } catch (error) {
         console.error('Error during checkout:', error);
@@ -27,7 +27,6 @@ export default function AddCoinsModal({ showModal, closeModal, setUser, user, se
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
-        // Redirect if no user is logged in
         closeModal()
         setUser(null)
       } else {
@@ -36,7 +35,7 @@ export default function AddCoinsModal({ showModal, closeModal, setUser, user, se
       }
     });
 
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe(); 
     
   };
 

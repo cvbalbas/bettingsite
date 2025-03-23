@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, sendOTP, verifyOTP  } from "../firebase/authMethods"; // Import Firebase auth functions
-import { auth } from "../firebase/firebaseConfig"; // Import Firebase auth instance
+import { signInWithEmail, signUpWithEmail, signInWithGoogle, sendOTP, verifyOTP  } from "../firebase/authMethods"; 
+import { auth } from "../firebase/firebaseConfig"; 
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { Modal, Button, Form } from 'react-bootstrap';
@@ -15,7 +15,7 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [confirmationResult, setConfirmationResult] = useState(null);
-  const [step, setStep] = useState(`${phoneSetUp ? 'phoneEntry': 'default'}`); // "default" -> "signup" -> "phoneEntry" -> "verifyOTP"
+  const [step, setStep] = useState(`${phoneSetUp ? 'phoneEntry': 'default'}`); 
  
 
 
@@ -43,13 +43,12 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
       const user = await verifyOTP(confirmationResult, otp, auth.currentUser);
       setDisclaimerOpen(true);
       try {
-        // Save user to MySQL
         await saveUser(auth.currentUser, phoneNumber);
-      } catch {
-        // console.log("Already saved")
+      } catch (error){
+        console.log(error)
       }
       
-      setStep("default"); // Move to next step
+      setStep("default"); 
       closeModal();
       setDisclaimerOpen(true)
     } catch (error) {
@@ -73,7 +72,7 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
       const confirmation = await sendOTP(phoneNumber);
       setConfirmationResult(confirmation);
       setError('');
-      setStep("verifyOTP"); // Move to next step
+      setStep("verifyOTP"); 
     } catch (error) {
       setError("Failed to send OTP.");
       setStep("phoneEntry");
@@ -85,10 +84,7 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
     e.preventDefault();
     if (phoneNumber.length > 2) {
       try {
-        // Save user to MySQL
-        // console.log(phoneNumber)
         const phoneExists = await checkPhone(phoneNumber);
-        // console.log(phoneExists)
   
         if(!phoneExists){
           try {
@@ -96,16 +92,11 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
             await signUpWithEmail(email, password);
             const currentUser = await signInWithEmail(email, password);
             setUser(currentUser)
-            // console.log(currentUser)
-            // await saveUser(currentUser);
             setStep("signup")
             await sendPhoneOTP();
-            
-            // closeModal(); 
-            // setDisclaimerOpen(true)
+
             
           } catch(error) {
-            // console.log(error)
             switch(error.code) {
               case 'auth/email-already-in-use':
                 setError("Email already in use.")
@@ -124,7 +115,6 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
   
   
       } catch(error){
-        // console.log(error)
         setError("Something went wrong. Try again.")
       }
     } else {
@@ -139,14 +129,12 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
     const currentUser = await signInWithGoogle();
     if (currentUser !==  false){
       setUser(currentUser);
-      // console.log(currentUser);
     } else {
       setError("Google Signup process closed. Try Again.");
     }
   };
 
   const saveUser = async (currentUser, phoneNumber) => {
-    // console.log(currentUser)
     try {
       const response = await fetch('/api/save-user', {
         method: 'POST',
@@ -156,11 +144,10 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
         body: JSON.stringify({currentUser, phoneNumber}),
       });
       const data = await response.json();
-      // console.log('User saved successfully:', data);
       setRegisteredPhone(true)
       setWalletBalance("100.00")
       if (data.error){
-        // console.log(data)
+        console.log(data.error)
       }
       if (!response.ok) {
         throw new Error(data.error || "Something went wrong");
@@ -171,7 +158,6 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
   };
 
   const checkPhone = async (phoneNumber) => {
-    // console.log(currentUser)
     try {
       const response = await fetch('/api/check-phone', {
         method: 'POST',
@@ -181,7 +167,6 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
         body: JSON.stringify({phoneNumber}),
       });
       const data = await response.json();
-      // console.log(data);
       if (data.message === "exists") {
         return true
       } else {
@@ -236,7 +221,7 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
             </Tooltip>
           </div>
           <PhoneInput
-            country={"gb"} // Default country
+            country={"gb"} 
             preferredCountries={["us", "gb", "ph", "in"]}
             enableSearch={false}
             value={phoneNumber}
@@ -276,7 +261,7 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
             </Tooltip>
           </div>
           <PhoneInput
-            country={"gb"} // Default country
+            country={"gb"} 
             preferredCountries={["gb", "us", "ph", "in"]}
             enableSearch={false}
             value={phoneNumber}
@@ -293,7 +278,6 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
     ) : (
       <Form onSubmit={handleVerifyOTP}>
         <Form.Group controlId="formOtp">
-          {/* <Form.Label>ENTER OTP</Form.Label> */}
           <Form.Control type="text" 
           name="otp_code"
           placeholder="" 

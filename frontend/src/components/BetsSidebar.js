@@ -1,43 +1,33 @@
 import React, { useEffect } from 'react';
 import currency from "../images/moneybag.png"
 import empty from "../images/Empty.png"
-import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
+import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 
 
 
 export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass, setUser}) {
-
-  // useEffect(() => {
-    
-  //   // console.log(selectedOdds)
-  //   // console.log(betAmounts)
-  // }, [selectedOdds, betAmounts]);
-
 
   const handleBetAmountChange = (bet, value) => {
    
     const key = `${bet.id}$${bet.selectedMarket}$${bet.selectedType}`;
     setBetAmounts(prevBetAmounts => ({
       ...prevBetAmounts,
-      [key]: value  // Update only the specific bet's amount
+      [key]: value 
     }));
-    // Calculate the estimated payout and update the estimatedPayouts state
     const payout = value * bet.selectedOdds;
     setEstimatedPayouts((prevPayouts) => ({
         ...prevPayouts,
         [key]: payout.toFixed(2),
     }));
-    // console.log(betAmounts)
-    // console.log(estimatedPayouts)
+
   };
   const removeBet = (bet) => {
     const betKey = `${bet.id}$${bet.selectedMarket}$${bet.selectedType}`;
 
-    // Update selectedOdds by filtering out the bet
     setSelectedOdds((prevOdds) =>
       prevOdds.filter((selectedBet) => selectedBet.id !== bet.id || selectedBet.selectedType !== bet.selectedType || selectedBet.selectedMarket !== bet.selectedMarket)
     );
-    // Remove associated betAmount and estimatedPayout
+
     setBetAmounts((prevAmounts) => {
       const { [betKey]: _, ...newAmounts } = prevAmounts;
       return newAmounts;
@@ -52,7 +42,6 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
-        // setUser to nothing and open Signup Modal
         setUser(null)
         openSignupModal()
       } else {
@@ -62,18 +51,18 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
       }
     });
 
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe(); 
   }
   const saveBets = async () => {
     console.log(user)
     try {
-      const token = await user.getIdToken(); // Get Firebase Auth Token
+      const token = await user.getIdToken(); 
 
       const response = await fetch('/api/save-odds', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Send the token in headers
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
             selectedOdds,
@@ -90,18 +79,15 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
       setAnimationClass('alert-fade-in');
       setShowAlert(true);
 
-      // Start fade-out after 1 second
       const fadeOutTimeout = setTimeout(() => {
         setAnimationClass('alert-fade-out');
       }, 1000);
 
-      // Remove the alert after the fade-out animation is complete
       const clearAlertTimeout = setTimeout(() => {
         setShowAlert(false);
         setAnimationClass('');
       }, 1500);
 
-      // Cleanup timeouts
       return () => {
         clearTimeout(fadeOutTimeout);
         clearTimeout(clearAlertTimeout);
@@ -111,13 +97,11 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
     }
   };
 
-   // Calculate the total of all estimated payouts
    const totalEstimatedPayout = Object.values(estimatedPayouts)
-   .reduce((sum, payout) => sum + parseFloat(payout), 0); // Convert payout to float and sum them
+   .reduce((sum, payout) => sum + parseFloat(payout), 0); 
     
-   // Calculate the total of all estimated payouts
     const totalBetAmounts = Object.values(betAmounts)
-    .reduce((sum, bet) => sum + parseFloat(bet), 0); // Convert payout to float and sum them
+    .reduce((sum, bet) => sum + parseFloat(bet), 0); 
 
   return (
     <div className = 'd-flex justify-content-end bets-float shadow-left'>
