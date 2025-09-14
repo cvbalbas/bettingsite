@@ -443,26 +443,22 @@ app.post('/api/transactions', async(req, res) => {
 });
 
 //Get bets history of current user
-app.post('/api/bets-history', async(req, res) => {
-
+app.post('/api/bets-history', async (req, res) => {
   const { user } = req.body;
-  // console.log(req.body)
+
   try {
     const token = req.headers.authorization?.split("Bearer ")[1]; // Extract the token
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
     // Verify the token using Firebase Admin SDK
     const decodedToken = await admin.auth().verifyIdToken(token);
-
-    console.log("Decoded Token:", decodedToken); // Contains user info
-
-    const uid = decodedToken.uid; // Get user ID from verified token
+    const uid = decodedToken.uid; // Verified user ID
     console.log("Verified UID:", uid);
 
     try {
       // Start a transaction
       await executeQuery('START TRANSACTION');
-  
+
       const userResults = await executeQuery(`
         SELECT 
             bl.*, 
@@ -471,32 +467,34 @@ app.post('/api/bets-history', async(req, res) => {
             bwt.amount
         FROM bets_list AS bl
         LEFT JOIN bets_wallet_transactions AS bwt
-          ON bl.bet_id = bwt.bet_id
-          AND (
-            (bl.status = 'pending' AND bwt.transaction_type = 'bet') OR
-            (bl.status IN ('won', 'lost') AND bwt.transaction_type IN ('win', 'loss'))
+          ON bwt.transaction_id = (
+            SELECT MAX(transaction_id)
+            FROM bets_wallet_transactions
+            WHERE bets_wallet_transactions.bet_id = bl.bet_id
+              AND (
+                (bl.status = 'pending' AND transaction_type = 'bet')
+                OR
+                (bl.status IN ('won', 'lost') AND transaction_type IN ('win', 'loss'))
+              )
           )
         WHERE bl.uid = ?
-        GROUP BY bl.bet_id
         ORDER BY bwt.transaction_id DESC
         LIMIT 20;
-    `, [uid]);
-    console.log(userResults)
-  
+      `, [uid]);
+
       // Commit the transaction if all operations succeed
       await executeQuery('COMMIT');
-      res.status(200).json({ message: 'wallet balance retrieved', results: userResults });
-  
+      res.status(200).json({ message: 'bets history retrieved', results: userResults });
+
     } catch (error) {
-      // Roll back the transaction if any operation fails
+      // Roll back if any operation fails
       await executeQuery('ROLLBACK');
-      res.status(500).json({ error: 'Error retrieving wallet balance', details: error.message });
+      res.status(500).json({ error: 'Error retrieving bets history', details: error.message });
     }
   } catch (error) {
     console.error("Error verifying token:", error);
     res.status(401).json({ error: "Invalid token" });
   }
-  
 });
 
 //Update betsusers table, set premiumTrial status and expiry date
@@ -1293,4 +1291,12 @@ app.post('/api/mark-notifications-read', async (req, res) => {
     console.error("Error marking notifications as read:", error);
     res.status(500).json({ error: 'Error updating notifications' });
   }
+});
+
+
+// Serve React frontend
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
