@@ -20,16 +20,16 @@ app.listen(PORT, () => {
 var mysql = require("mysql2");
 
 var con = mysql.createConnection({
-  // host: process.env.HOST,
-  // port: 3306,
-  // user: process.env.USER,
-  // password: process.env.PASSWORD,
-  // database: process.env.DATABASE",
-  host: "localhost",
+  host: process.env.HOST,
   port: 3306,
-  user: "root",
-  password: "",
-  database: "bets",
+  user: process.env.USER,
+  password: process.env.PASSWORD,
+  database: process.env.DATABASE
+  // host: "localhost",
+  // port: 3306,
+  // user: "root",
+  // password: "",
+  // database: "bets",
 });
 
 con.connect((err) => {
