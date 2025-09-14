@@ -94,7 +94,7 @@ app.get('/api/odds', async (req, res) => {
       }
     });
     res.json(response.data);
-    // console.log(response.data)
+    console.log(response.data)
 
 
     

@@ -232,6 +232,15 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         case "Crystal Palace":
           fixture += "crystal-palace"
           break
+        case "Burnley":
+          fixture += "burnley"
+          break
+        case "Leeds United":
+          fixture += "leeds"
+          break
+        case "Sunderland":
+          fixture += "sunderland"
+          break
         default:
           break
       }
@@ -296,6 +305,15 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           break
         case "Crystal Palace":
           fixture += "crystal-palace"
+          break
+        case "Burnley":
+          fixture += "burnley"
+          break
+        case "Leeds United":
+          fixture += "leeds"
+          break
+        case "Sunderland":
+          fixture += "sunderland"
           break
         default:
           break
@@ -397,7 +415,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         marketIDs.push(getMarketIDsByMatchId(groupedMatches, openMarketsMatchIds[num]))
       }
       
-
+      console.log(marketIDs.flat().join(','))
       if (marketIDs.length !== 0){
         fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+ marketIDs.flat().join(',') + "&repub=OC")
         .then(response => response.json())
