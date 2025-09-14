@@ -154,6 +154,9 @@ useEffect(() => {
 
 
 function filterBets(betHistory){
+
+  if(!Array.isArray(betHistory)) return [];
+  
   const uniqueBets = Array.from(new Map(betHistory.map(bet => [bet.bet_id, bet])).values());
 
   const filteredBets = uniqueBets.filter((bet) => {
