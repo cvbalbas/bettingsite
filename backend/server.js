@@ -585,7 +585,7 @@ app.post('/api/upgradePremium', async (req, res) => {
 // This is your test secret API key.
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 
-const YOUR_DOMAIN = 'http://localhost:3000'; // Update to your frontend domain
+const YOUR_DOMAIN = process.env.YOUR_DOMAIN; // Update to your frontend domain
 
 //Payment for Premium
 app.post('/create-checkout-session', async (req, res) => {
