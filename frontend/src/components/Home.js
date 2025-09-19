@@ -59,8 +59,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     } else {
       setPercentOdds(false)
     }
-    
-  }, [isPremium, user, markets, matches, loadedMatches, openMarkets])
+    // console.log(loadedMatches)
+    // console.log(open)
+    // console.log(markets)
+  }, [isPremium, user, markets, matches, loadedMatches, open])
 
   
   useEffect(() => {
@@ -69,7 +71,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       try {
         const response = await fetch('/api/odds'); 
         const data = await response.json();
-
+        // console.log(data.data)
         setMatches(data.data); 
 
       } catch (error) {
@@ -108,13 +110,6 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     
   }, []);
 
-  
-  const toggleCollapse = (id) => {
-    setOpen((prevState) => ({
-      ...prevState,
-      [id]: !prevState[id],
-    }));
-  };
 
 
   const getImagePath = (teamName) => {
@@ -320,8 +315,12 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       }
 
 
-      const marketIDsForMatch = marketIDs.filter((market) => market.fixture === fixture).map((market) => market.marketId)
-
+      const marketIDsForMatch = marketIDs
+        .filter((market) => market.fixture === fixture)
+        .map((market) => ({
+          marketId: market.marketId,
+          market: market.market
+        }));
 
       let subeventName = fixture
       .split('-') 
@@ -329,6 +328,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       .join(' ')
       .replace(' V ', ' v ')
       
+      const index_home = match.teams.indexOf(match.home_team)
+      const index_away = match.teams.indexOf(match.teams.filter(team => team !== match.home_team)[0])
+      // console.log(index_home, index_away)
+
       groupedMatches[matchDate].push({
         fixture: subeventName,
         id: match.id,
@@ -336,9 +339,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         awayTeam: match.teams.filter(team => team !== match.home_team)[0],
         time: formatTime(match.commence_time),
         date: formatDate(match.commence_time),
-        homeOdds: match.sites[lowestIndex].odds.h2h[0].toFixed(2), 
+        homeOdds: match.sites[lowestIndex].odds.h2h[index_home].toFixed(2), 
         drawOdds: match.sites[lowestIndex].odds.h2h[1].toFixed(2),
-        awayOdds: match.sites[lowestIndex].odds.h2h[2].toFixed(2),
+        awayOdds: match.sites[lowestIndex].odds.h2h[index_away].toFixed(2),
         marketIDs: marketIDsForMatch 
       });
     });
@@ -402,25 +405,21 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   useEffect(() => {
     
     const fetchMarketsRepeat = async () => {
-      const openMarketsMatchIds = Object.keys(openMarkets).filter(matchId => openMarkets[matchId])
-
-      const getMarketIDsByMatchId = (groupedMatches, matchId) => {
-        return Object.values(groupedMatches) 
-            .flat() 
-            .filter(match => match.id === matchId) 
-            .flatMap(match => match.marketIDs); 
-      };
-      const marketIDs = []
-      for(let num = 0; num < openMarketsMatchIds.length; num++) {
-        marketIDs.push(getMarketIDsByMatchId(groupedMatches, openMarketsMatchIds[num]))
-      }
+      const openMarketsMatchIds = Object.keys(open)
+      .filter(key => open[key])
+      .map(Number);
       
-      console.log(marketIDs.flat().join(','))
-      if (marketIDs.length !== 0){
-        fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+ marketIDs.flat().join(',') + "&repub=OC")
-        .then(response => response.json())
-        .then(data => {
+      console.log(open)
+      console.log(openMarketsMatchIds)
+
+      if (openMarketsMatchIds.length !== 0){
+        fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=" + openMarketsMatchIds  + "&repub=OC")
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data)
+          // data[0]["bets"][0]["bestOddsDecimal"] = 10 //For testing only
           const updateMarkets = (data) => {
+            
             setMarkets((prevMarkets) =>
               prevMarkets.map((market) => {
                 if (data.length !== 0) {
@@ -445,67 +444,148 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
             );
           };
           updateMarkets(data);
-          
         })
-        .catch(error => console.error(`Error fetching odds for market`));
+        .catch((error) => console.error(`Error fetching odds for market:`, error));
+
       }
       
     }
     
     
 
-    fetchMarketsRepeat();
+    //fetchMarketsRepeat();
     
 
     const intervalId = setInterval(fetchMarketsRepeat, 600000); // 600,000ms = 10 minutes
 
     return () => clearInterval(intervalId);
     
-  }, [openMarkets]);
+  }, [open]);
 
 
   const handleGetMarkets = async (match) => {
-    setLoadingMatch((prev) => ({ ...prev, [match.id]: true }));
+    setOpenMarkets((prevState) => ({
+      ...prevState,
+      [match.id]: !prevState[match.id], 
+    }));
+   
+  }
 
-    const matchIndex = loadedMatches.findIndex(
-      (matchToLoad) => matchToLoad === match.id
+  
+
+
+  const oddschecker = async (marketID) => {
+     
+    setLoadingMatch((prev) => ({ ...prev, [marketID]: true }));
+
+    const marketIndex = markets.findIndex(
+      (marketToLoad) => marketToLoad.marketId === marketID
     );
+    console.log(marketIndex)
+    if (marketIndex === -1) {
+       setLoadedMatches((prevLoadedMatch) => [...prevLoadedMatch,marketID]);
+      console.log(marketID)
+      fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+marketID + "&repub=OC")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+        setMarkets((prevMarkets) => [...prevMarkets, ...data]);
+        // setOpen((prevState) => ({
+        //   ...prevState,
+        //   [marketID]: !prevState[marketID],
+        // }));
+        setOpen((prev) => {
+          const newState = {};
 
-    if (matchIndex === -1) {
-      setLoadedMatches(() => [match.id]);
-      if (markets.some((market) => market.subeventName === match.fixture)){
-        setOpenMarkets((prevState) => ({
-          ...prevState,
-          [match.id]: !prevState[match.id], 
-        }));
-        setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
+          // If the clicked market is already true, close everything
+          if (prev[marketID]) {
+            Object.keys(prev).forEach((key) => {
+              newState[key] = false;
+            });
+          } else {
+            // Otherwise, close all others and open the clicked one
+            Object.keys(prev).forEach((key) => {
+              newState[key] = false;
+            });
+            newState[marketID] = true;
+          }
+          setTimeout(() => {
+            const container = document.querySelector(".match-list");
+            const element = document.getElementById(`collapse-${marketID}`);
 
-      } else {
-        fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+ match.marketIDs.join(',') + "&repub=OC")
-        .then(response => response.json())
-        .then(data => {
-          
-          setMarkets((prevMarkets) => [...prevMarkets, ...data]);
-         
-          setOpenMarkets((prevState) => ({
-            ...prevState,
-            [match.id]: !prevState[match.id], 
-          }));
-          setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
-          
-        })
-        .catch(error => console.error(`Error fetching odds for market`));
-      }   
+            if (container && element) {
+              const containerTop = container.scrollTop;
+              const containerBottom = containerTop + container.clientHeight;
+
+              const elementTop = element.offsetTop;
+              const elementBottom = elementTop + element.clientHeight;
+
+              // Check if element is fully visible in container
+              const isVisible =
+                elementTop >= containerTop + 100 && elementBottom <= containerBottom + 100;
+
+              if (!isVisible) {
+                container.scrollTo({
+                  top: elementTop - container.offsetTop - 100,
+                  behavior: "smooth",
+                });
+              }
+            }
+          }, 300);
+          return newState;
+        });
+        
+        setLoadingMatch((prev) => ({ ...prev, [marketID]: false }));
+      })
+        
     } else {
+      console.log(true)
       setLoadedMatches((prevLoadedMatches) =>
-        prevLoadedMatches.filter((id) => id !== match.id)
+        prevLoadedMatches.filter((id) => id !== marketID)
       );
-      setOpenMarkets((prevState) => ({
-        ...prevState,
-        [match.id]: !prevState[match.id], 
-      }));
-      setLoadingMatch((prev) => ({ ...prev, [match.id]: false }));
-    }  
+      setOpen((prev) => {
+        const newState = {};
+
+        // If the clicked market is already true, close everything
+        if (prev[marketID]) {
+          Object.keys(prev).forEach((key) => {
+            newState[key] = false;
+          });
+        } else {
+          // Otherwise, close all others and open the clicked one
+          Object.keys(prev).forEach((key) => {
+            newState[key] = false;
+          });
+          newState[marketID] = true;
+        }
+        setTimeout(() => {
+          const container = document.querySelector(".match-list");
+          const element = document.getElementById(`collapse-${marketID}`);
+
+          if (container && element) {
+            const containerTop = container.scrollTop;
+            const containerBottom = containerTop + container.clientHeight;
+
+            const elementTop = element.offsetTop;
+            const elementBottom = elementTop + element.clientHeight;
+
+            // Check if element is fully visible in container
+            const isVisible =
+              elementTop >= containerTop + 100 && elementBottom <= containerBottom + 100;
+
+            if (!isVisible) {
+              container.scrollTo({
+                top: elementTop - container.offsetTop - 100,
+                behavior: "smooth",
+              });
+            }
+          }
+        }, 300);
+        return newState;
+      });
+      setLoadingMatch((prev) => ({ ...prev, [marketID]: false }));
+    } 
+    
   }
 
   let [percentOdds, setPercentOdds] = useState(false);
@@ -529,6 +609,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         }
       }
     }
+
+
+
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
@@ -687,23 +770,23 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                         </div>
                         </div>
                         <div id={`collapse-${match.id}`} className='mt-0 mb-0'>
-                          {markets
-                          .filter(
-                            (market) =>
-                              market.subeventName === match.fixture &&
-                              market.marketTypeName.toLowerCase().includes(searchMarket?.[match.id]?.toLowerCase() || '')
-                          )
-                          .sort((a, b) => a.marketTypeName.localeCompare(b.marketTypeName))
-                          .slice(0, searchMarket?.[match.id] ? markets.length : 5)
+                          {match.marketIDs
+                          // .filter(
+                          //   (market) =>
+                          //     market.subeventName === match.fixture &&
+                          //     market.marketTypeName.toLowerCase().includes(searchMarket?.[match.id]?.toLowerCase() || '')
+                          // )
+                          .sort((a, b) => a.market.localeCompare(b.market))
+                          .slice(0, searchMarket?.[match.id] ? match.marketIDs.length : 5)
                           .map((market) => (
                             <div key={`${market.marketId}`}>
                               <Button 
-                                onClick={() => toggleCollapse(market.marketId)}
+                                onClick={() => {oddschecker(market.marketId);}}
                                 aria-controls={`collapse-${market.marketId}`}
                                 aria-expanded={open[market.marketId] || false}
                                 className='drop d-flex justify-content-between align-items-center'
                               >
-                                <div>{market.marketTypeName}</div>
+                                <div>{market.market}</div>
                                 <div>
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
                                     <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
@@ -713,8 +796,13 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                               <Collapse in={open[market.marketId]}>
                               <div>
                                 <div id={`collapse-${market.marketId}`}  className="py-2 px-2 mx-0 mb-2 row collapseContent">
-                                  {market.bets
-                                  .sort((a, b) => b.bestOddsDecimal - a.bestOddsDecimal)
+                                  {markets
+                                  .filter(
+                                    (m) =>
+                                      m.subeventName === match.fixture &&
+                                      m.marketTypeName === market.market
+                                  )
+                                  .flatMap((m) => m.bets)
                                   .map((bets) => (
                                     bets.bestOddsDecimal !== undefined && (
                                       <div key={`${market.marketId}-${bets.betName}-${bets.line}`} className="col-12 col-md-6 col-lg-4 col-xl-3 d-flex marketBets mouse-pointer" >
@@ -752,23 +840,18 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                         <Collapse in={openMarkets[match.id] !== undefined && showAll[match.id] && !searchMarket[match.id] ? openMarkets[match.id] : false} className='mt-0'>
                         <div>
                         <div id={`collapse-${match.id}`} className="mt-0 mb-5">
-                          {markets
-                          .filter(
-                            (market) =>
-                              market.subeventName === match.fixture &&
-                              market.marketTypeName.toLowerCase().includes(searchMarket?.[match.id]?.toLowerCase() || '')
-                          )
-                          .sort((a, b) => a.marketTypeName.localeCompare(b.marketTypeName))
+                          {match.marketIDs
+                          .sort((a, b) => a.market.localeCompare(b.market))
                           .slice(5)
                           .map((market) => (
                             <div key={`${market.marketId}`}>
                               <Button 
-                                onClick={() => toggleCollapse(market.marketId)}
+                                onClick={() => oddschecker(market.marketId)}
                                 aria-controls={`collapse-${market.marketId}`}
                                 aria-expanded={open[market.marketId] || false}
                                 className='drop d-flex justify-content-between align-items-center'
                               >
-                                <div>{market.marketTypeName}</div>
+                                <div>{market.market}</div>
                                 <div>
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
                                     <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
@@ -778,8 +861,13 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                               <Collapse in={open[market.marketId]}>
                               <div>
                                 <div id={`collapse-${market.marketId}`}  className="py-2 px-2 mx-0 mb-2 row collapseContent">
-                                  {market.bets
-                                  .sort((a, b) => a.betName.localeCompare(b.betName))
+                                  {markets
+                                  .filter(
+                                    (m) =>
+                                      m.subeventName === match.fixture &&
+                                      m.marketTypeName === market.market
+                                  )
+                                  .flatMap((m) => m.bets)
                                   .map((bets) => (
                                     bets.bestOddsDecimal !== undefined && (
                                       <div key={`${market.marketId}-${bets.betName}-${bets.line}`} className="col-12 col-md-6 col-lg-4 col-xl-3 d-flex marketBets mouse-pointer" >
