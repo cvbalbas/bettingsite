@@ -94,7 +94,7 @@ app.get('/api/odds', async (req, res) => {
       }
     });
     res.json(response.data);
-    console.log(response.data)
+    // console.log(response.data)
 
 
     
@@ -105,6 +105,13 @@ app.get('/api/odds', async (req, res) => {
 
 
 app.get('/api/markets', async (req, res) => {
+  var sql = "SELECT DISTINCT market FROM odds";
+  con.query(sql, function (err, result) { 
+      if (err) throw err;
+      console.log(result.length);
+      const extractedValues = result.map(obj => obj["market"]);
+      console.log(extractedValues.join(","))
+  });
   var sql = "SELECT * FROM odds";
   con.query(sql, function (err, result) { 
       if (err) throw err;
@@ -113,6 +120,36 @@ app.get('/api/markets', async (req, res) => {
   });
 });
 
+app.get("/api/oddschecker", async (req, res) => {
+  const marketIds = req.query.marketIds || "";
+  const url = `https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=${marketIds}&repub=OC`;
+  console.log(url)
+  try {
+   const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://www.oddschecker.com/',
+        'Origin': 'https://www.oddschecker.com',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    const text = await resp.text();
+    const ct = resp.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      console.error('Oddschecker returned non-JSON. First 300 chars:\n', text.slice(0,5000));
+      throw new Error('Oddschecker returned HTML (likely Cloudflare challenge)');
+    }
+
+    const data = JSON.parse(text);
+    console.log(data);
+  } catch (err) {
+    console.error("Error fetching odds:", err);
+    res.status(500).json({ error: "Failed to fetch odds" });
+  }
+});
 
 
 //Save bets into bets_list and bets_wallet_transactions and update wallet_balance

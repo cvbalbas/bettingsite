@@ -328,8 +328,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       .join(' ')
       .replace(' V ', ' v ')
       
-      const index_home = match.teams.indexOf(match.home_team)
-      const index_away = match.teams.indexOf(match.teams.filter(team => team !== match.home_team)[0])
+      let index_home = match.teams.indexOf(match.home_team)
+      let index_away = match.teams.indexOf(match.teams.filter(team => team !== match.home_team)[0])
+      if(index_home == 1) {
+        index_home = 2
+      } 
+      if(index_away == 1){
+        index_away = 2
+      }
       // console.log(index_home, index_away)
 
       groupedMatches[matchDate].push({
