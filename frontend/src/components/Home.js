@@ -61,8 +61,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     }
     // console.log(loadedMatches)
     // console.log(open)
-    // console.log(markets)
-  }, [isPremium, user, markets, matches, loadedMatches, open])
+    console.log(searchMarket)
+  }, [isPremium, user, markets, matches, loadedMatches, open, searchMarket])
 
   
   useEffect(() => {
@@ -772,11 +772,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                         </div>
                         <div id={`collapse-${match.id}`} className='mt-0 mb-0'>
                           {match.marketIDs
-                          // .filter(
-                          //   (market) =>
-                          //     market.subeventName === match.fixture &&
-                          //     market.marketTypeName.toLowerCase().includes(searchMarket?.[match.id]?.toLowerCase() || '')
-                          // )
+                          .filter(
+                            (market) =>
+                              market.market.toLowerCase().includes(searchMarket?.[match.id]?.toLowerCase() || '')
+                          )
                           .sort((a, b) => a.market.localeCompare(b.market))
                           .slice(0, searchMarket?.[match.id] ? match.marketIDs.length : 5)
                           .map((market) => (
@@ -842,6 +841,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                         <div>
                         <div id={`collapse-${match.id}`} className="mt-0 mb-5">
                           {match.marketIDs
+                          .filter(
+                            (market) =>
+                              market.market.toLowerCase().includes(searchMarket?.[match.id]?.toLowerCase() || '')
+                          )
                           .sort((a, b) => a.market.localeCompare(b.market))
                           .slice(5)
                           .map((market) => (
