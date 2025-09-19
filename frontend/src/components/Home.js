@@ -71,7 +71,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       try {
         const response = await fetch('/api/odds'); 
         const data = await response.json();
-        // console.log(data.data)
+        console.log(data.data)
         setMatches(data.data); 
 
       } catch (error) {
@@ -330,12 +330,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       
       let index_home = match.teams.indexOf(match.home_team)
       let index_away = match.teams.indexOf(match.teams.filter(team => team !== match.home_team)[0])
-      if(index_home == 1) {
-        index_home = 2
-      } 
-      if(index_away == 1){
-        index_away = 2
-      }
+     
       // console.log(index_home, index_away)
 
       groupedMatches[matchDate].push({
@@ -346,7 +341,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         time: formatTime(match.commence_time),
         date: formatDate(match.commence_time),
         homeOdds: match.sites[lowestIndex].odds.h2h[index_home].toFixed(2), 
-        drawOdds: match.sites[lowestIndex].odds.h2h[1].toFixed(2),
+        drawOdds: match.sites[lowestIndex].odds.h2h[2].toFixed(2),
         awayOdds: match.sites[lowestIndex].odds.h2h[index_away].toFixed(2),
         marketIDs: marketIDsForMatch 
       });
