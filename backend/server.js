@@ -84,22 +84,26 @@ app.get('/api/odds', async (req, res) => {
   const apiKeys = process.env.ODDS_API_KEYS.split(',');
   const randomApiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
   
+  // Get sport key from query string
+  const sportKey = req.query.league || 'soccer_epl'; // default EPL if not provided
+  console.log(sportKey)
   try {
     const response = await axios.get('https://api.the-odds-api.com/v3/odds', {
       params: {
         api_key: randomApiKey,
-        sport: 'soccer_epl',
+        sport: sportKey,
         region: 'uk',
         mkt: 'h2h'
       }
     });
     res.json(response.data);
-    // console.log(response.data)
+    console.log(response.data)
 
 
     
   } catch (error) {
-    res.status(500).send('Error fetching data');
+    console.log(error)
+    res.status(500).send(error);
   }
 });
 
@@ -110,7 +114,7 @@ app.get('/api/markets', async (req, res) => {
       if (err) throw err;
       console.log(result.length);
       const extractedValues = result.map(obj => obj["market"]);
-      console.log(extractedValues.join(","))
+      // console.log(extractedValues.join(","))
   });
   var sql = "SELECT * FROM odds";
   con.query(sql, function (err, result) { 

@@ -978,6 +978,29 @@ a slight movement of the header row */
   width: 100% !important;
 }
 
+.btn-chevron-left {
+  background-image: linear-gradient(to right, #0E1D1D, #0E1D1D, #0E1D1D, rgba(14,29,29,0.8), rgba(14,29,29,0.5), rgba(14,29,29,0.3) , rgba(14,29,29,0.1),transparent) ;
+  width:50px;
+}
+.btn-chevron-right {
+  background-image: linear-gradient(to left, #0E1D1D, #0E1D1D, #0E1D1D, rgba(14,29,29,0.8), rgba(14,29,29,0.5), rgba(14,29,29,0.3) , rgba(14,29,29,0.1),transparent) ;
+  width: 50px;
+}
+.btn-chevron {
+  border: none !important;
+  height: 70px;
+  border-radius: 0px !important;
+}
+.chevron {
+  color: white !important;
+}
+
+.border-grey{
+  border-color: #CACACA !important;
+}
+.border-orange {
+  border-color: #f36c18 !important;
+}
 
 @media only screen and (max-width: 992px) { /*smaller than desktop =TABLET*/
   .odds-container {

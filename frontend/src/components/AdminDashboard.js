@@ -150,52 +150,10 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
   };
 
   const getImagePath = (teamName) => {
-    let formattedName = ""
-    if (teamName.includes("Tottenham")) {
-      formattedName = "Tottenham_Hotspur"
-    } else if (teamName.includes("West Ham")) {
-      formattedName = "West_Ham_United"
-    } else if (teamName.includes("Fulham")) {
-      formattedName = "Fulham"
-    } else if (teamName.includes("Arsenal")) {
-      formattedName = "Arsenal"
-    } else if (teamName.includes("Aston")) {
-      formattedName = "Aston_Villa"
-    } else if (teamName.includes("Bournemouth")) {
-      formattedName = "Bournemouth"
-    } else if (teamName.includes("Brentford")) {
-      formattedName = "Brentford"
-    } else if (teamName.includes("Brighton")) {
-      formattedName = "Brighton_and_Hove_Albion"
-    } else if (teamName.includes("Chelsea")) {
-      formattedName = "Chelsea"
-    } else if (teamName.includes("Crystal")) {
-      formattedName = "Crystal_Palace"
-    } else if (teamName.includes("Everton")) {
-      formattedName = "Everton"
-    } else if (teamName.includes("Ipswich")) {
-      formattedName = "Ipswich_Town"
-    } else if (teamName.includes("Leicester")) {
-      formattedName = "Leicester_City"
-    } else if (teamName.includes("Liverpool")) {
-      formattedName = "Liverpool"
-    } else if (teamName.includes("Man") && teamName.includes("City")) {
-      formattedName = "Manchester_City.png"
-    } else if (teamName.includes("Man") 
-      && (teamName.includes("Utd") || teamName.includes("United"))) {
-      formattedName = "Manchester_United"
-    } else if (teamName.includes("Newcastle")) {
-      formattedName = "Newcastle_United"
-    } else if (teamName.includes("Nottingham")) {
-      formattedName = "Nottingham_Forest"
-    } else if (teamName.includes("Southampton")) {
-      formattedName = "Southampton"
-    } else if (teamName.includes("Wolverhampton")) {
-      formattedName = "Wolverhampton_Wanderers"
-    } 
+    const formattedName = teamName.replace('ø','o').replace('ğ','g').replace('é', 'e').replace('ö','o').replace('-','_').replace('/','_').replace('. ', '_').replace(/ /g, '_'); 
+    console.log(formattedName)
     return `/images/${formattedName}.png`; 
   };
-
     return (
       <div>
         <div className='col-lg-10 col-sm-12 m-auto'>

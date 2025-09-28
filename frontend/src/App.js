@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import AccountSettings from './components/AccountSettings';
 import NavBar from './components/NavBar';
+import Selector from './components/Selector';
+
 import BetsSidebar from './components/BetsSidebar';
 import LoginModal from './components/Login';
 import SignupModal from './components/Register';
@@ -16,6 +18,7 @@ import AdminDashboard from './components/AdminDashboard'
 import React, { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 import { Navigate } from 'react-router-dom';
+import epl from "./images/epl.png";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -60,6 +63,8 @@ function App() {
   const [alertText, setAlertText] = useState('');
   const [animationClass, setAnimationClass] = useState('');
 
+
+  const [selectedLeague, setSelectedLeague] = useState({ name: "Premier League", icon: epl, key: "soccer_epl" });
 
   useEffect(() => {
     // Check if the disclaimer has been shown before
@@ -200,7 +205,7 @@ function App() {
       <div className='top-nav bg-black'></div>
       <div className='bot-nav bg-black shadow-box'></div>
       <LoginModal showModal={loginModalOpen} closeModal={closeLoginModal} user = {user} setUser = {setUser} setSignupModalOpen={setSignupModalOpen} />
-      <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} setWalletBalance={setWalletBalance} phoneSetUp={phoneSetUp} registeredPhone={registeredPhone} setRegisteredPhone={setRegisteredPhone} />
+      <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} setWalletBalance={setWalletBalance} phoneSetUp={phoneSetUp} setPhoneSetUp = {setPhoneSetUp} registeredPhone={registeredPhone} setRegisteredPhone={setRegisteredPhone} setLoading={setLoading} setIsPremium = {setIsPremium} setRole = {setRole} />
       <Disclaimer showModal={disclaimerOpen} closeModal={closeDisclaimerModal} user = {user} setUser = {setUser}/>
       <PremiumModal showModal={premiumModal} closeModal={closePremiumModal} user = {user} isPremium={isPremium} setIsPremium={setIsPremium} openSignupModal={openSignupModal} />
       <AddCoinsModal showModal={addCoinsModal} closeModal={closeAddCoinsModal} setUser={setUser} user = {user} setCoinsToAdd={setCoinsToAdd}/>
@@ -209,10 +214,18 @@ function App() {
       <div className="App d-flex">
         <div className={`m-auto ${betsOpen ? 'home':'homesmall'}`}>
         <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} setIsPremium={setIsPremium} />
+        
+        
+        
+        
+        
         <BrowserRouter>
           <Routes>
             <Route path = '/' element={
-              <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass} setPhoneSetUp={setPhoneSetUp} setRole={setRole} openSignupModal={openSignupModal} setLoading={setLoading} />
+              <>
+                <Selector selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} />
+                <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass} setPhoneSetUp={setPhoneSetUp} setRole={setRole} openSignupModal={openSignupModal} setLoading={setLoading} selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} />
+              </>
               }>
             </Route>
             <Route path = '/admin' element={

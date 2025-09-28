@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, sendOTP, verifyOTP  } from "../firebase/authMethods"; 
+import { signInWithEmail, signUpWithEmail, signInWithGoogle, sendOTP, verifyOTP, logOut  } from "../firebase/authMethods"; 
 import { auth } from "../firebase/firebaseConfig"; 
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -8,7 +8,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
 
-const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, setDisclaimerOpen, setWalletBalance, phoneSetUp, registeredPhone, setRegisteredPhone}) => {
+const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, setDisclaimerOpen, setWalletBalance, phoneSetUp, setPhoneSetUp, registeredPhone, setRegisteredPhone, setLoading, setIsPremium, setRole}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("")
@@ -186,10 +186,35 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
   const handleChange = (value) => {
     setPhoneNumber(`+${value}`);
   };
+
+  const handleLogOut = async () => {
+    logOut()
+    .then(() => {
+      setPhoneSetUp(false)
+      setUser(null);
+      setLoading(false);
+      setIsPremium({
+        isPremium: false,
+        isPremiumTrial: false,
+        trialExpiresAt: null,
+      })
+      setRole(null)
+
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    })
+    .catch((error) => {
+      setLoading(false);
+    });
+  }
+
   return (
     <Modal className='modal' show={showModal} onHide={() => { 
       if(step === 'default'){
         closeModal();
+      } else {
+        handleLogOut();
       }
       setError('');
       }} centered>
