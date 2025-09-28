@@ -1,5 +1,6 @@
-Error in markets"Try again later"
 Normalise odds
 double chance = 200%
-fix OTP, logout and don't proceed if they don't enter
-setup Stripe
+
+separate login page
+separate about us
+

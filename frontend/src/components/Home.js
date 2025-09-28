@@ -27,7 +27,11 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
   useEffect(() => {
     if (notif.length > 0) {
-      setAlertText(`<strong>Successfully added bet! </strong> <br/>${notif[0]?.split('$')[0]} - ${notif[0]?.split('$')[1]} - ${notif[0]?.split('$')[2]}`);
+      if(notif[0]?.split('$')[3] === "danger"){
+        setAlertText(`<strong>Failed to add bet! </strong> <br/>${notif[0]?.split('$')[0]} - ${notif[0]?.split('$')[1]} - ${notif[0]?.split('$')[2]}`);
+      } else if (notif[0]?.split('$')[3] === "success"){
+        setAlertText(`<strong>Successfully added bet! </strong> <br/>${notif[0]?.split('$')[0]} - ${notif[0]?.split('$')[1]} - ${notif[0]?.split('$')[2]}`);
+      }
       setAnimationClass('alert-fade-in');
       setShowAlert(true);
 
@@ -62,7 +66,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     }
     // console.log(loadedMatches)
     // console.log(open)
-    console.log(markets)
+    // console.log(markets)
   }, [isPremium, user, markets, matches, loadedMatches, open, searchMarket])
 
   
@@ -72,7 +76,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       try {
         const response = await fetch(`/api/odds?league=${league.key}`); 
         const data = await response.json();
-        console.log(data.data)
+        console.log("update")
+        // console.log(data.data)
         // data.data[0]["home_team"] = "Sunderland"
         // data.data[0]["teams"][0] = "Aston Villa"
         // data.data[0]["teams"][1] = "Sunderland"
@@ -145,7 +150,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       if (selectedLeague) {
         // setLoadingHome(true)
         fetchOdds(selectedLeague);
-
+        
         // setTimeout(function() {
         //   setLoadingHome(false)
         // }, 500);      
@@ -160,7 +165,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
   const getImagePath = (teamName) => {
     const formattedName = teamName.replace('ø','o').replace('ğ','g').replace('é', 'e').replace('ö','o').replace('-','_').replace('/','_').replace('. ', '_').replace(/ /g, '_'); 
-    console.log(formattedName)
+    // console.log(formattedName)
     return `/images/${formattedName}.png`; 
   };
 
@@ -709,35 +714,50 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   
  
   const handleOddsClick = (matchId, type, odds, market, match) => {
-    
-    if(selectedOdds.length === 0) {
-      setBetsOpen(true);
-    } 
-    if (!user) {
-      setBetsOpen(true);
-    }
-    
-    const selectedMatchInfo = {
-      ...match,
-      selectedMarket: market,
-      selectedType: type, 
-      selectedOdds: odds, 
-    };  
-  
-    const matchIndex = selectedOdds.findIndex(
-      (odd) => odd.id === matchId && odd.selectedMarket === market && odd.selectedType === type
-    );
+    console.log(match)
+    // Combine date + time into a single string
+    const matchDateTimeStr = `${match.date} ${match.time}`;
 
-    if (matchIndex === -1) {
-      
-      setSelectedOdds((prevSelectedOdds) => [...prevSelectedOdds, selectedMatchInfo]);
-      setNotif(() => [match.fixture + '$' + market + '$' +  type])
+    // Parse into a JavaScript Date object
+    const matchDateTime = new Date(matchDateTimeStr);
 
+    // Get current time
+    const now = new Date();
+
+    // Compare
+    if (matchDateTime < now) {
+      setNotif(() => [match.fixture + '$' + market + '$' +  type + '$' + 'danger'])
     } else {
-      setSelectedOdds((prevSelectedOdds) =>
-        prevSelectedOdds.filter((_, i) => i !== matchIndex)
+      if(selectedOdds.length === 0) {
+        setBetsOpen(true);
+      } 
+      if (!user) {
+        setBetsOpen(true);
+      }
+      
+      const selectedMatchInfo = {
+        ...match,
+        selectedMarket: market,
+        selectedType: type, 
+        selectedOdds: odds, 
+      };  
+    
+      const matchIndex = selectedOdds.findIndex(
+        (odd) => odd.id === matchId && odd.selectedMarket === market && odd.selectedType === type
       );
+
+      if (matchIndex === -1) {
+        
+        setSelectedOdds((prevSelectedOdds) => [...prevSelectedOdds, selectedMatchInfo]);
+        setNotif(() => [match.fixture + '$' + market + '$' +  type+ '$' + 'success'])
+
+      } else {
+        setSelectedOdds((prevSelectedOdds) =>
+          prevSelectedOdds.filter((_, i) => i !== matchIndex)
+        );
+      }
     }
+    
     
   };
 
@@ -748,14 +768,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       .filter(key => open[key])
       .map(Number);
       
-      console.log(open)
-      console.log(openMarketsMatchIds)
+      // console.log(open)
+      // console.log(openMarketsMatchIds)
 
       if (openMarketsMatchIds.length !== 0){
         fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=" + openMarketsMatchIds  + "&repub=OC")
         .then((response) => response.json())
         .then((data) => {
-          console.log(data)
+          // console.log(data)
           // data[0]["bets"][0]["bestOddsDecimal"] = 10 //For testing only
           const updateMarkets = (data) => {
             
@@ -785,7 +805,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           updateMarkets(data);
         })
         .catch((error) => {
-          console.error("❌ Error fetching odds:", error);
+          console.error("Error fetching odds:", error);
         });
 
       }
@@ -822,14 +842,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     const marketIndex = markets.findIndex(
       (marketToLoad) => marketToLoad.marketId === marketID
     );
-    console.log(marketIndex)
+    // console.log(marketIndex)
     if (marketIndex === -1) {
        setLoadedMatches((prevLoadedMatch) => [...prevLoadedMatch,marketID]);
-      console.log(marketID)
+      // console.log(marketID)
       fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+marketID + "&repub=OC")
       .then((response) => response.json())
       .then((data) => {
-        console.log(data)
+        // console.log(data)
         if (data.length === 0){
           setFetchError(true)
         }
@@ -931,7 +951,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       });
         
     } else {
-      console.log(true)
+      // console.log(true)
       setLoadedMatches((prevLoadedMatches) =>
         prevLoadedMatches.filter((id) => id !== marketID)
       );
@@ -1034,7 +1054,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       <div className='col-lg-10 col-sm-12 m-auto'>
         <div className='alertsBox'>
           {showAlert && (
-            <div className={`alert alert-success fade show ${animationClass}`} role="alert"
+            <div className={`alert alert-${notif[0]?.split('$')[3]} fade show ${animationClass}`} role="alert"
             dangerouslySetInnerHTML={{ __html: alertText }}>
               
             </div>
