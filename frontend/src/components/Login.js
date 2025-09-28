@@ -29,13 +29,14 @@ const LoginModal = ({ showModal, closeModal, user, setUser, setSignupModalOpen }
   };
 
   const handleGoogleLogin = async () => {
-    const currentUser = await signInWithGoogle();
-    if (currentUser !==  false){
-      setUser(currentUser);
-    } else {
-      setError("Google Signin process closed. Try Again.");
-    }
-    
+       const currentUser = await signInWithGoogle();
+       if (currentUser ===  "closed"){
+         setError("Google Signup process closed. Try Again.");
+       } else if (currentUser === "error"){
+         setError("Google Signup failed. Try Again.");
+       } else {
+         setUser(currentUser);
+       }
   };
 
   const handleResetPassword = () => {

@@ -84,9 +84,10 @@ export const signInWithGoogle = async () => {
   } catch (error) {
     if (error.code === "auth/popup-closed-by-user") {
       // console.log("User closed the popup. Signup process stopped.");
-      return false; // Don't show an error to the user, just exit
+      return "closed"; // Don't show an error to the user, just exit
     }
     console.error("Firebase Authentication Error:", error);
+    return "error"
     //throw error;
   }
 };

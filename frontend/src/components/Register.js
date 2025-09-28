@@ -127,10 +127,12 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
 
   const handleGoogleSignup = async () => {
     const currentUser = await signInWithGoogle();
-    if (currentUser !==  false){
-      setUser(currentUser);
-    } else {
+    if (currentUser ===  "closed"){
       setError("Google Signup process closed. Try Again.");
+    } else if (currentUser === "error"){
+      setError("Google Signup failed. Try Again.");
+    } else {
+      setUser(currentUser);
     }
   };
 
