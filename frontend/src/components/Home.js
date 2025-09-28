@@ -663,20 +663,22 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       let index_away = match.teams.indexOf(match.teams.filter(team => team !== match.home_team)[0])
      
       // console.log(index_home, index_away)
-
-      groupedMatches[matchDate].push({
-        fixture: subeventName,
-        id: match.id,
-        homeTeam: match.home_team,
-        awayTeam: match.teams.filter(team => team !== match.home_team)[0],
-        time: formatTime(match.commence_time),
-        date: formatDate(match.commence_time),
-        homeOdds: match.sites[lowestIndex].odds.h2h[index_home].toFixed(2), 
-        drawOdds: match.sites[lowestIndex].odds.h2h[2].toFixed(2),
-        awayOdds: match.sites[lowestIndex].odds.h2h[index_away].toFixed(2),
-        marketIDs: marketIDsForMatch,
-        sport_key: match.sport_key
-      });
+      const matchDateTime = new Date(match.commence_time * 1000); // convert to Date object
+      if (matchDateTime > new Date()) {
+        groupedMatches[matchDate].push({
+          fixture: subeventName,
+          id: match.id,
+          homeTeam: match.home_team,
+          awayTeam: match.teams.filter(team => team !== match.home_team)[0],
+          time: formatTime(match.commence_time),
+          date: formatDate(match.commence_time),
+          homeOdds: match.sites[lowestIndex].odds.h2h[index_home].toFixed(2), 
+          drawOdds: match.sites[lowestIndex].odds.h2h[2].toFixed(2),
+          awayOdds: match.sites[lowestIndex].odds.h2h[index_away].toFixed(2),
+          marketIDs: marketIDsForMatch,
+          sport_key: match.sport_key
+        });
+      }
     });
 
     return groupedMatches;
