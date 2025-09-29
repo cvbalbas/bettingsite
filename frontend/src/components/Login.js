@@ -15,6 +15,9 @@ const LoginModal = ({ showModal, closeModal, user, setUser, setSignupModalOpen }
       const currentuser = await signInWithEmail(email, password);
       setUser(currentuser)
       closeModal(); 
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     } catch (error){
       console.log(error.code)
       switch (error.code) {
@@ -31,11 +34,14 @@ const LoginModal = ({ showModal, closeModal, user, setUser, setSignupModalOpen }
   const handleGoogleLogin = async () => {
        const currentUser = await signInWithGoogle();
        if (currentUser ===  "closed"){
-         setError("Google Signup process closed. Try Again.");
+          setError("Google Signup process closed. Try Again.");
        } else if (currentUser === "error"){
-         setError("Google Signup failed. Try Again.");
+          setError("Google Signup failed. Try Again.");
        } else {
-         setUser(currentUser);
+          setUser(currentUser);
+          if (window.location.pathname !== '/') {
+            window.location.href = '/';
+          }
        }
   };
 
@@ -47,7 +53,13 @@ const LoginModal = ({ showModal, closeModal, user, setUser, setSignupModalOpen }
   };
 
   return (
-    <Modal className='modal' show={showModal} onHide={() => {closeModal(); setError('');}} centered>
+    <Modal className='modal' show={showModal} onHide={() => {
+      closeModal(); 
+      setError(''); 
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+      }} centered>
     <Modal.Header closeButton className="bg-lightgreen text-white modal-head">
       <Modal.Title className="fw-bold">Login</Modal.Title>
     </Modal.Header>

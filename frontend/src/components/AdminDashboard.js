@@ -148,9 +148,144 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
           console.error("Error updating results:", error);
       }
   };
+  // Full mapping from full name → short name
+  const teamMap = {
+    // Premier League
+    "Tottenham Hotspur": "tottenham",
+    "West Ham United": "west-ham",
+    "Fulham": "fulham",
+    "Aston Villa": "aston-villa",
+    "Manchester United": "man-utd",
+    "Brentford": "brentford",
+    "Newcastle United": "newcastle",
+    "Brighton and Hove Albion": "brighton",
+    "Ipswich Town": "ipswich",
+    "Everton": "everton",
+    "Southampton": "southampton",
+    "Leicester City": "leicester",
+    "Bournemouth": "bournemouth",
+    "Arsenal": "arsenal",
+    "Wolverhampton Wanderers": "wolverhampton",
+    "Manchester City": "man-city",
+    "Liverpool": "liverpool",
+    "Chelsea": "chelsea",
+    "Nottingham Forest": "nottingham-forest",
+    "Crystal Palace": "crystal-palace",
+    "Burnley": "burnley",
+    "Leeds United": "leeds",
+    "Sunderland": "sunderland",
+
+    // Ligue 1
+    "AS Monaco": "monaco",
+    "Lorient": "lorient",
+    "Toulouse": "toulouse",
+    "Nantes": "nantes",
+    "Paris Saint Germain": "psg",
+    "Auxerre": "auxerre",
+    "Nice": "nice",
+    "Paris FC": "paris-fc",
+    "Angers": "angers",
+    "Brest": "brest",
+    "Metz": "metz",
+    "Le Havre": "le-havre",
+    "Lille": "lille",
+    "Lyon": "lyon",
+    "Rennes": "rennes",
+    "RC Lens": "lens",
+    "Marseille": "marseille",
+    "Strasbourg": "strasbourg",
+
+    // Bundesliga
+    "Bayern Munich": "bayern-munich",
+    "Werder Bremen": "werder-bremen",
+    "1 FC Heidenheim": "heidenheim",
+    "Augsburg": "augsburg",
+    "FSV Mainz 05": "mainz",
+    "Borussia Dortmund": "borussia-dortmund",
+    "FC St Pauli": "st-pauli",
+    "Bayer Leverkusen": "bayer-leverkusen",
+    "VfL Wolfsburg": "wolfsburg",
+    "RB Leipzig": "rb-leipzig",
+    "Borussia Monchengladbach": "borussia-mgladbach",
+    "Eintracht Frankfurt": "eintracht-frankfurt",
+    "SC Freiburg": "sc-freiburg",
+    "TSG Hoffenheim": "tsg-hoffenheim",
+    "1 FC Koln": "cologne",
+    "VfB Stuttgart": "vfb-stuttgart",
+    "Union Berlin": "union-berlin",
+    "Hamburger SV": "hamburg",
+
+    // Serie A
+    "AS Roma": "roma",
+    "Hellas Verona": "verona",
+    "AC Milan": "ac-milan",
+    "Napoli": "napoli",
+    "Como": "como",
+    "Cremonese": "cremonese",
+    "Genoa": "genoa",
+    "Lazio": "lazio",
+    "Lecce": "lecce",
+    "Bologna": "bologna",
+    "Parma": "parma",
+    "Torino": "torino",
+    "Pisa": "pisa",
+    "Fiorentina": "fiorentina",
+    "Sassuolo": "sassuolo",
+    "Udinese": "udinese",
+    "Cagliari": "cagliari",
+    "Inter Milan": "inter-milan",
+    "Atalanta BC": "atalanta",
+    "Juventus": "juventus",
+
+    // La Liga
+    "Girona": "girona",
+    "Espanyol": "espanyol",
+    "Getafe": "getafe",
+    "Levante": "levante",
+    "Mallorca": "real-mallorca",
+    "Alaves": "alaves",
+    "Rayo Vallecano": "rayo-vallecano",
+    "Sevilla": "sevilla",
+    "Barcelona": "barcelona",
+    "Real Sociedad": "real-sociedad",
+    "Valencia": "valencia",
+    "Oviedo": "oviedo",
+    "Atletico Madrid": "atletico-madrid",
+    "Real Madrid": "real-madrid",
+    "Villarreal": "villarreal",
+    "Athletic Bilbao": "athletic-bilbao",
+    "Elche CF": "elche",
+    "Celta Vigo": "celta-vigo",
+    "Real Betis": "real-betis",
+    "CA Osasuna": "osasuna",
+
+    // Champions League (additional teams)
+    "Club Brugge": "club-brugge",
+    "FC Kairat": "kairat-almaty",
+    "Pafos FC": "aep-paphos",
+    "Bodo Glimt": "bodo-glimt",
+    "Benfica": "benfica",
+    "Galatasaray": "galatasaray",
+    "Slavia Praha": "slavia-prague",
+    "Ajax": "ajax",
+    "Qarabag FK": "fk-qarabag",
+    "FC Copenhagen": "fc-copenhagen",
+    "Union Saint Gilloise": "union-st-gilloise",
+    "Olympiakos Piraeus": "olympiakos",
+    "PSV Eindhoven": "psv",
+    "Sporting Lisbon": "sporting-lisbon"
+  };
+
+  // Reverse mapping: shortName => full name
+  const reverseTeamMap = Object.fromEntries(
+    Object.entries(teamMap).map(([full, short]) => [short, full])
+  );
+  const getFullTeamName = (shortName) => reverseTeamMap[shortName] || "";
 
   const getImagePath = (teamName) => {
-    const formattedName = teamName.replace('ø','o').replace('ğ','g').replace('é', 'e').replace('ö','o').replace('-','_').replace('/','_').replace('. ', '_').replace(/ /g, '_'); 
+    const shortName = teamName.replace(/ /g, '-').toLowerCase()
+    const fullName = getFullTeamName(shortName)
+    const formattedName = fullName.replace(/ /g, '_'); 
     console.log(formattedName)
     return `/images/${formattedName}.png`; 
   };

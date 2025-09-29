@@ -23,6 +23,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   const [searchMarket, setSearchMarket] = useState({});
   const [showAll, setShowAll] = useState({});
   const [notif, setNotif] = useState([])
+  const [filteredGroupedMatches, setFilteredGroupedMatches] = useState({});
 
 
   useEffect(() => {
@@ -37,12 +38,12 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       const fadeOutTimeout = setTimeout(() => {
         setAnimationClass('alert-fade-out');
-      }, 1000);
+      }, 2000);
 
       const clearAlertTimeout = setTimeout(() => {
         setShowAlert(false);
         setAnimationClass('');
-      }, 1500);
+      }, 2500);
 
       return () => {
         clearTimeout(fadeOutTimeout);
@@ -64,10 +65,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     } else {
       setPercentOdds(false)
     }
-    // console.log(loadedMatches)
-    // console.log(open)
-    // console.log(markets)
-  }, [isPremium, user, markets, matches, loadedMatches, open, searchMarket])
+    console.log(loadingMatch)
+    console.log(filteredGroupedMatches)
+    console.log(markets)
+  }, [isPremium, user, markets, matches, loadedMatches, open, searchMarket, filteredGroupedMatches])
 
   
   useEffect(() => {
@@ -119,7 +120,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         //   time:"21 October 2024 at 20:00",
         //   sport_key: "soccer_epl"
         // })
-        // console.log(data)
+        console.log(data)
         setMarketIDs(data); 
         
       } catch (error) {
@@ -677,12 +678,27 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           awayTeam: match.teams.filter(team => team !== match.home_team)[0],
           time: formatTime(match.commence_time),
           date: formatDate(match.commence_time),
+          timestamp: match.commence_time,
           homeOdds: match.sites[lowestIndex].odds.h2h[index_home].toFixed(2), 
           drawOdds: match.sites[lowestIndex].odds.h2h[2].toFixed(2),
           awayOdds: match.sites[lowestIndex].odds.h2h[index_away].toFixed(2),
           marketIDs: marketIDsForMatch,
           sport_key: match.sport_key
         });
+        // groupedMatches[matchDate].push({
+        //   fixture: subeventName,
+        //   id: match.id,
+        //   homeTeam: match.home_team,
+        //   awayTeam: match.teams.filter(team => team !== match.home_team)[0],
+        //   time: "05:30",
+        //   date: "29 September 2025",
+        //   timestamp: 1759120200,
+        //   homeOdds: match.sites[lowestIndex].odds.h2h[index_home].toFixed(2), 
+        //   drawOdds: match.sites[lowestIndex].odds.h2h[2].toFixed(2),
+        //   awayOdds: match.sites[lowestIndex].odds.h2h[index_away].toFixed(2),
+        //   marketIDs: marketIDsForMatch,
+        //   sport_key: match.sport_key
+        // });
       }
     });
 
@@ -691,7 +707,6 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
   
 
-  const [filteredGroupedMatches, setFilteredGroupedMatches] = useState({});
 
   useEffect(() => {
     const groupedMatches = groupMatchesByDate(matches);
@@ -715,17 +730,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
  
   const handleOddsClick = (matchId, type, odds, market, match) => {
     console.log(match)
-    // Combine date + time into a single string
-    const matchDateTimeStr = `${match.date} ${match.time}`;
-
-    // Parse into a JavaScript Date object
-    const matchDateTime = new Date(matchDateTimeStr);
-
-    // Get current time
-    const now = new Date();
-
+    const nowUnix = Math.floor(Date.now() / 1000); // current time in seconds
     // Compare
-    if (matchDateTime < now) {
+    if (match.timestamp < nowUnix) {
       setNotif(() => [match.fixture + '$' + market + '$' +  type + '$' + 'danger'])
     } else {
       if(selectedOdds.length === 0) {
@@ -775,7 +782,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=" + openMarketsMatchIds  + "&repub=OC")
         .then((response) => response.json())
         .then((data) => {
-          // console.log(data)
+          console.log(data)
           // data[0]["bets"][0]["bestOddsDecimal"] = 10 //For testing only
           const updateMarkets = (data) => {
             
@@ -833,6 +840,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   }
 
   
+  const [pendingOpen, setPendingOpen] = useState(null);
 
 
   const oddschecker = async (marketID) => {
@@ -849,7 +857,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids="+marketID + "&repub=OC")
       .then((response) => response.json())
       .then((data) => {
-        // console.log(data)
+        console.log(data)
         if (data.length === 0){
           setFetchError(true)
         }
@@ -858,53 +866,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         //   ...prevState,
         //   [marketID]: !prevState[marketID],
         // }));
-        setOpen((prev) => {
-          const newState = {};
-
-          // If the clicked market is already true, close everything
-          if (prev[marketID]) {
-            Object.keys(prev).forEach((key) => {
-              newState[key] = false;
-            });
-          } else {
-            // Otherwise, close all others and open the clicked one
-            Object.keys(prev).forEach((key) => {
-              newState[key] = false;
-            });
-            newState[marketID] = true;
-          }
-          setTimeout(() => {
-            const container = document.querySelector(".match-list");
-            const element = document.getElementById(`collapse-${marketID}`);
-
-            if (container && element) {
-              const containerTop = container.scrollTop;
-              const containerBottom = containerTop + container.clientHeight;
-
-              const elementTop = element.offsetTop;
-              const elementBottom = elementTop + element.clientHeight;
-
-              // Check if element is fully visible in container
-              const isVisible =
-                elementTop >= containerTop + 100 && elementBottom <= containerBottom + 100;
-
-              if (!isVisible) {
-                container.scrollTo({
-                  top: elementTop - container.offsetTop - 100,
-                  behavior: "smooth",
-                });
-              }
-            }
-          }, 300);
-          return newState;
-        })
+        setPendingOpen(marketID)  
         
         
-        setLoadingMatch((prev) => ({ ...prev, [marketID]: false }));
+        
       })
       .catch((error) => {
         setFetchError(true)
-        console.error("❌ Error fetching odds:", error);
+        console.error("Error fetching odds:", error);
         setOpen((prev) => {
           const newState = {};
 
@@ -999,6 +968,44 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     } 
     
   }
+  useEffect(() => {
+    if (!pendingOpen) return;
+    console.log(markets)
+    console.log(filteredGroupedMatches)
+    setOpen((prev) => {
+      const newState = {};
+      Object.keys(prev).forEach((key) => {
+        newState[key] = false;
+      });
+      newState[pendingOpen] = true;
+      return newState;
+    });
+    
+    setTimeout(() => {
+      const container = document.querySelector(".match-list");
+      const element = document.getElementById(`collapse-${pendingOpen}`);
+
+      if (container && element) {
+        const containerTop = container.scrollTop;
+        const containerBottom = containerTop + container.clientHeight;
+
+        const elementTop = element.offsetTop;
+        const elementBottom = elementTop + element.clientHeight;
+
+        const isVisible =
+          elementTop >= containerTop + 100 && elementBottom <= containerBottom + 100;
+
+        if (!isVisible) {
+          container.scrollTo({
+            top: elementTop - container.offsetTop - 100,
+            behavior: "smooth",
+          });
+        }
+      }
+      setPendingOpen(null); // reset
+      setLoadingMatch((prev) => ({ ...prev, [pendingOpen]: false }));
+    }, 300); // keep a short delay for DOM to paint
+  }, [markets]); // run when markets change
 
   let [percentOdds, setPercentOdds] = useState(false);
 
@@ -1054,10 +1061,15 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       <div className='col-lg-10 col-sm-12 m-auto'>
         <div className='alertsBox'>
           {showAlert && (
-            <div className={`alert alert-${notif[0]?.split('$')[3]} fade show ${animationClass}`} role="alert"
-            dangerouslySetInnerHTML={{ __html: alertText }}>
-              
-            </div>
+            <div
+              className={`alert ${
+                notif[0]?.split('$')[3] === "danger" || alertText.includes("Error:")
+                  ? "alert-danger"
+                  : "alert-success"
+              } fade show ${animationClass}`}
+              role="alert"
+              dangerouslySetInnerHTML={{ __html: alertText }}
+            ></div>
           )}
         </div>
 
@@ -1216,9 +1228,13 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                     >
                                       <div>{market.market}</div>
                                       <div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
-                                          <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-                                        </svg>
+                                        {loadingMatch[market.marketId] ? (
+                                          <Spinner animation="border" size="sm" />
+                                          ) : (
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
+                                            <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                                          </svg>
+                                        )}
                                       </div>
                                     </Button>
                                     <Collapse in={open[market.marketId]}>
@@ -1232,8 +1248,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                           markets
                                             .filter(
                                               (m) =>
-                                                m.subeventName === match.fixture &&
-                                                m.marketTypeName === market.market
+                                                m.subeventName.toLowerCase() === match.fixture.toLowerCase() &&
+                                                m.marketTypeName.toLowerCase() === market.market.toLowerCase()
                                             )
                                             .flatMap((m) => m.bets)
                                             .map((bets) =>
@@ -1340,9 +1356,13 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                 >
                                   <div>{market.market}</div>
                                   <div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
-                                      <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-                                    </svg>
+                                    {loadingMatch[market.marketId] ? (
+                                      <Spinner animation="border" size="sm" />
+                                      ) : (
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
+                                        <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                                      </svg>
+                                    )}
                                   </div>
                                 </Button>
                                 <Collapse in={open[market.marketId]}>

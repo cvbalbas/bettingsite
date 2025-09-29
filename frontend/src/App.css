@@ -59,6 +59,12 @@ body::-webkit-scrollbar-thumb
   background-color: #141414 !important;
 }
 
+.bg-red {
+  border: 2px solid red;       /* or background-color: rgba(255,0,0,0.1) */
+  background-color: rgba(255,0,0,0.1);
+}
+
+
 .text-lightgrey {
   color: #CACACA;
 }

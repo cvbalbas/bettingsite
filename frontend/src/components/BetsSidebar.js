@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import currency from "../images/moneybag.png"
 import empty from "../images/Empty.png"
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 
 
-
 export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass, setUser}) {
+
+  const [invalidMatches, setInvalidMatches] = useState([]);
 
   const handleBetAmountChange = (bet, value) => {
    
@@ -21,6 +22,14 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
     }));
 
   };
+
+  useEffect(() => {
+    console.log(selectedOdds)
+    console.log(estimatedPayouts)
+    console.log(betAmounts)
+    console.log(invalidMatches)
+  },[selectedOdds,betAmounts,estimatedPayouts,invalidMatches])
+
   const removeBet = (bet) => {
     const betKey = `${bet.id}$${bet.selectedMarket}$${bet.selectedType}`;
 
@@ -55,7 +64,35 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
   }
   const saveBets = async () => {
     console.log(user)
+    
     try {
+      const nowUnix = Math.floor(Date.now() / 1000); // current time in seconds
+
+      // Check for passed matches
+      const passedMatches = selectedOdds.filter(match => match.timestamp <= nowUnix).map(match => match.id);;
+      setInvalidMatches(passedMatches)
+      if (passedMatches.length > 0) {
+        // Throw an error or show alert if any matches have passed
+        setAlertText('<strong>Error:</strong> One or more selected matches have already passed.');
+        setAnimationClass('alert-fade-in');
+        setShowAlert(true);
+
+        const fadeOutTimeout = setTimeout(() => {
+          setAnimationClass('alert-fade-out');
+        }, 1000);
+
+        const clearAlertTimeout = setTimeout(() => {
+          setShowAlert(false);
+          setAnimationClass('');
+        }, 1500);
+
+        return () => {
+          clearTimeout(fadeOutTimeout);
+          clearTimeout(clearAlertTimeout);
+        };
+      }
+
+      // If all matches are valid, continue saving
       const token = await user.getIdToken(); 
 
       const response = await fetch('/api/save-odds', {
@@ -65,35 +102,51 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-            selectedOdds,
-            betAmounts,
-            user,
-          })
+          selectedOdds,
+          betAmounts,
+          user,
+        })
       });
+
       const data = await response.json();
       console.log('Odds saved successfully:', data);
-      setWalletBalance(data.results[0]["wallet_balance"])
+
+      setWalletBalance(data.results[0]["wallet_balance"]);
       closeSidebar();
       handleClearAllBets();
+
       setAlertText('<strong>Successfully placed bets! </strong>');
       setAnimationClass('alert-fade-in');
       setShowAlert(true);
 
       const fadeOutTimeout = setTimeout(() => {
         setAnimationClass('alert-fade-out');
-      }, 1000);
+      }, 2000);
 
       const clearAlertTimeout = setTimeout(() => {
         setShowAlert(false);
         setAnimationClass('');
-      }, 1500);
+      }, 2500);
 
       return () => {
         clearTimeout(fadeOutTimeout);
         clearTimeout(clearAlertTimeout);
       };
+
     } catch (error) {
       console.error('Error saving odds:', error);
+      setAlertText('<strong>Error:</strong> Failed to save bets.');
+      setAnimationClass('alert-fade-in');
+      setShowAlert(true);
+
+      const fadeOutTimeout = setTimeout(() => {
+        setAnimationClass('alert-fade-out');
+      }, 2000);
+
+      const clearAlertTimeout = setTimeout(() => {
+        setShowAlert(false);
+        setAnimationClass('');
+      }, 2500);
     }
   };
 
@@ -120,43 +173,69 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                 </div>
             </div>
             <div className='bets-list'>
-                <div className='text-end text-grey pt-3 pb-2 px-4 font-12 mouse-pointer' onClick={handleClearAllBets}>Clear all</div>
-                {selectedOdds.length > 0 ? (
-                selectedOdds.map((bet, index) => (
-                <div key={index} className='selected-bet p-3' >
-                    <div className='float-end mouse-pointer' onClick={() => removeBet(bet)}>
+              <div className='text-end text-grey pt-3 pb-2 px-4 font-12 mouse-pointer' onClick={handleClearAllBets}>Clear all</div>
+              {selectedOdds.length > 0 ? (
+                selectedOdds.map((bet, index) => {
+                  const isInvalid = invalidMatches.includes(bet.id); // check if this bet is invalid
+                  return (
+                    <div
+                      key={index}
+                      className={`selected-bet p-3 ${isInvalid ? 'bg-red' : ''}`} // add red class if invalid
+                    >
+                      <div className='float-end mouse-pointer' onClick={() => removeBet(bet)}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash3-fill" viewBox="0 0 16 16">
-                            <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
+                          <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
                         </svg>
-                    </div>
-                    <div className='matchName text-start'>{bet.homeTeam} vs {bet.awayTeam}</div>
-                    <div className='font-12 text-lightgrey text-start'>{bet.date} - {bet.time}</div>
-                    <div className='font-12 text-lightgrey text-start mt-2'>{bet.selectedMarket}</div>
-                    <div className='font-15 text-start fw-bold d-flex justify-content-between'>
+                      </div>
+
+                      <div className='matchName text-start'>{bet.homeTeam} vs {bet.awayTeam}</div>
+                      <div className='font-12 text-lightgrey text-start'>{bet.date} - {bet.time}</div>
+                      <div className='font-12 text-lightgrey text-start mt-2'>{bet.selectedMarket}</div>
+                      <div className='font-15 text-start fw-bold d-flex justify-content-between'>
                         <div className='text-white'>{bet.selectedType}</div>
                         <div className='text-orange'>{bet.selectedOdds}</div>
-                    </div>
-                    <div className='d-flex justify-content-between align-items-center mt-2 '>
+                      </div>
+                      <div className='d-flex justify-content-between align-items-center mt-2 '>
                         <div className='text-start col-6 d-flex bg-darkblue align-items-center justify-content-between p-1 rounded'>
-                            <div><input pattern="^\d*(\.\d{0,2})?$" className='input bg-darkblue inputBet' placeholder='0.00' onChange={(e) => handleBetAmountChange(bet, e.target.value)} value={betAmounts[`${bet.id}$${bet.selectedMarket}$${bet.selectedType}`] || ''}/></div>
-                            <div className='currency'><img src = {currency} className='currencyImg' alt='coins'/></div>
+                          <div>
+                            <input
+                              pattern="^\d*(\.\d{0,2})?$"
+                              className='input bg-darkblue inputBet'
+                              placeholder='0.00'
+                              onChange={(e) => handleBetAmountChange(bet, e.target.value)}
+                              value={betAmounts[`${bet.id}$${bet.selectedMarket}$${bet.selectedType}`] || ''}
+                            />
+                          </div>
+                          <div className='currency'>
+                            <img src={currency} className='currencyImg' alt='coins'/>
+                          </div>
                         </div>
-                        <div className='text-end col-6'>
-                            <div className='font-12 text-lightgrey'>Est. Payout</div>
-                            <div className='font-15 text-white fw-bold d-flex justify-content-end align-items-center'><div className='pt-1'>{estimatedPayouts[`${bet.id}$${bet.selectedMarket}$${bet.selectedType}`] || '0.00'} </div><div><img src = {currency} className='currencyImg' alt='coins'/></div></div>
-                        </div>
-                    </div>
 
-                </div>
-                ))
-            ) : (
-            <div className='text-center mt-5'>
-                <img src = {empty} className='empty' alt='Empty...' />
-                <p className='text-white'><em>Empty...</em> <br/>
+                        <div className='text-end col-6'>
+                          <div className='font-12 text-lightgrey'>Est. Payout</div>
+                          <div className='font-15 text-white fw-bold d-flex justify-content-end align-items-center'>
+                            <div className='pt-1'>
+                              {estimatedPayouts[`${bet.id}$${bet.selectedMarket}$${bet.selectedType}`] || '0.00'}
+                            </div>
+                            <div>
+                              <img src={currency} className='currencyImg' alt='coins'/>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })
+              ) : (
+                <div className='text-center mt-5'>
+                  <img src={empty} className='empty' alt='Empty...' />
+                  <p className='text-white'><em>Empty...</em> <br/>
                     <strong>Start Betting!</strong>
-                </p>
-            </div>
-            )}
+                  </p>
+                </div>
+              )}
+
             </div>
             <div className='totalBets'>
                 <div className='d-flex justify-content-between align-items-center px-4 pt-4 pb-2' >

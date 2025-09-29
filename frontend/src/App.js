@@ -137,7 +137,7 @@ function App() {
         setPhoneSetUp(false)
       }
     }
-    
+    console.log(user)
   }, [registeredPhone, user, loading])
 
 
@@ -244,7 +244,11 @@ function App() {
               <AdminDashboard user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass}/>}>
             </Route>
 
-            <Route path = '/login' element={<LoginModal showModal={true} closeModal={closeLoginModal} user = {user} setUser = {setUser} setSignupModalOpen={setSignupModalOpen} />}></Route>
+            <Route path = '/login' element={
+              user === null ? 
+              <LoginModal showModal={true} closeModal={closeLoginModal} user = {user} setUser = {setUser} setSignupModalOpen={setSignupModalOpen} />
+              : <Navigate to="/" replace />
+            }></Route>
 
           </Routes>
         </BrowserRouter>
