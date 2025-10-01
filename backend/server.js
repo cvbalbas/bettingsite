@@ -86,7 +86,7 @@ app.get('/api/odds', async (req, res) => {
   
   // Get sport key from query string
   const sportKey = req.query.league || 'soccer_epl'; // default EPL if not provided
-  console.log(sportKey)
+  // console.log(sportKey)
   try {
     const response = await axios.get('https://api.the-odds-api.com/v3/odds', {
       params: {
@@ -97,7 +97,7 @@ app.get('/api/odds', async (req, res) => {
       }
     });
     res.json(response.data);
-    console.log(response.data)
+    // console.log(response.data)
 
 
     
@@ -238,6 +238,7 @@ app.post('/api/save-odds', async (req, res) => {
   
   
     } catch (error) {
+      console.log(error)
       // Roll back the transaction if any operation fails
       await executeQuery('ROLLBACK');
       res.status(500).json({ error: 'Error saving odds, transactions, or updating wallet balance', details: error.message });
@@ -276,6 +277,7 @@ app.post('/api/user-info', async (req, res) => {
       res.status(200).json({ message: 'User Info retrieved', results: userResults });
   
     } catch (error) {
+      console.log(error)
       // Roll back the transaction if any operation fails
       await executeQuery('ROLLBACK');
       res.status(500).json({ error: 'Error retrieving user info', details: error.message });
@@ -352,6 +354,7 @@ app.post('/api/save-user', async (req, res) => {
     
 
   } catch (error) {
+    console.log(error)
     // Roll back the transaction if any operation fails
     await executeQuery('ROLLBACK');
     res.status(500).json({ error: 'Error adding user', details: error.message });
@@ -393,6 +396,7 @@ app.post('/api/check-phone', async (req, res) => {
     
 
   } catch (error) {
+    console.log(error)
     // Roll back the transaction if any operation fails
     await executeQuery('ROLLBACK');
     res.status(500).json({ error: 'Error adding user', details: error.message });
@@ -472,6 +476,7 @@ app.post('/api/transactions', async(req, res) => {
       res.status(200).json({ message: 'transactions retrieved', results: userResults });
   
     } catch (error) {
+      console.log(error)
       // Roll back the transaction if any operation fails
       await executeQuery('ROLLBACK');
       res.status(500).json({ error: 'Error retrieving transactions', details: error.message });
@@ -528,6 +533,7 @@ app.post('/api/bets-history', async (req, res) => {
       res.status(200).json({ message: 'bets history retrieved', results: userResults });
 
     } catch (error) {
+      console.log(error)
       // Roll back if any operation fails
       await executeQuery('ROLLBACK');
       res.status(500).json({ error: 'Error retrieving bets history', details: error.message });
@@ -537,6 +543,11 @@ app.post('/api/bets-history', async (req, res) => {
     res.status(401).json({ error: "Invalid token" });
   }
 });
+
+function toMySQLDateTime(jsDate) {
+  // console.log(jsDate.toISOString().slice(0, 19).replace('T', ' '))
+  return jsDate.toISOString().slice(0, 19).replace('T', ' ');
+}
 
 //Update betsusers table, set premiumTrial status and expiry date
 app.post('/api/upgradePremiumTrial', async (req, res) => {
@@ -560,16 +571,20 @@ app.post('/api/upgradePremiumTrial', async (req, res) => {
       
       const isPremiumTrialStatus = await executeQuery('SELECT isPremiumTrial FROM betsusers WHERE uid = ?', [uid]);
   
-      console.log(isPremiumTrialStatus)
-  
+      // console.log(isPremiumTrialStatus[0]["isPremiumTrial"])
+      const date = new Date(expiresAt)
+      //  console.log(date)
+      const expiresAtTimestamp = toMySQLDateTime(date)
+      // console.log(expiresAtTimestamp)
       if (isPremiumTrialStatus[0]["isPremiumTrial"] === 0){
         const query = `
         UPDATE betsusers
         SET isPremiumTrial = TRUE, trialExpiresAt = ?
         WHERE uid = ?;
         `;
+
         const values = [
-          expiresAt, 
+          expiresAtTimestamp, 
           uid
         ]
         await executeQuery(query, values);
@@ -579,6 +594,7 @@ app.post('/api/upgradePremiumTrial', async (req, res) => {
       res.status(200).json({ message: 'upgraded successfully' });
   
     } catch (error) {
+      console.log(error)
       // Roll back the transaction if any operation fails
       await executeQuery('ROLLBACK');
       res.status(500).json({ error: 'Error upgrading user', details: error.message });
@@ -615,6 +631,7 @@ app.post('/api/upgradePremium', async (req, res) => {
     res.status(200).json({ message: 'upgraded successfully' });
 
   } catch (error) {
+    console.log(error)
     // Roll back the transaction if any operation fails
     await executeQuery('ROLLBACK');
     res.status(500).json({ error: 'Error upgrading user', details: error.message });
@@ -651,7 +668,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-app.listen(4242, () => console.log('Running on port 4242'));
+// app.listen(4242, () => console.log('Running on port 4242'));
 
 //Verify Payments so they won't repeat
 app.post('/api/verify-payment', async (req, res) => {
