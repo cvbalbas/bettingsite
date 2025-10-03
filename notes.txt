@@ -3,6 +3,16 @@ double chance = 200%
 
 
 separate about us
+Free Trial finished
 
 
+logout after 1hr inactivity
+SQL disconnects/fails when inactive 
 
+betssidebar does not update odds 
+betssidebar does not do %
+
+remove console.log
+remove Win Market
+
+phone modal is opening while it's getting the sql stuff for membership details

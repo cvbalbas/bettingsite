@@ -667,6 +667,34 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       
       let index_home = match.teams.indexOf(match.home_team)
       let index_away = match.teams.indexOf(match.teams.filter(team => team !== match.home_team)[0])
+
+
+      const homeOdds = match.sites[lowestIndex].odds.h2h[index_home];
+      const drawOdds = match.sites[lowestIndex].odds.h2h[2];
+      const awayOdds = match.sites[lowestIndex].odds.h2h[index_away];
+
+      // Step 1: implied probabilities
+      const probHome = 1 / homeOdds;
+      const probDraw = 1 / drawOdds;
+      const probAway = 1 / awayOdds;
+
+      // Step 2: normalize
+      const totalProb = probHome + probDraw + probAway;
+
+      const normProbHome = probHome / totalProb;
+      const normProbDraw = probDraw / totalProb;
+      const normProbAway = probAway / totalProb;
+
+      // Step 3: convert back to odds
+      const normHomeOdds = (1 / normProbHome).toFixed(2);
+      const normDrawOdds = (1 / normProbDraw).toFixed(2);
+      const normAwayOdds = (1 / normProbAway).toFixed(2);
+
+      // console.log("Normalized Odds:", {
+      //   home: normHomeOdds,
+      //   draw: normDrawOdds,
+      //   away: normAwayOdds
+      // });
      
       // console.log(index_home, index_away)
       const matchDateTime = new Date(match.commence_time * 1000); // convert to Date object
@@ -679,9 +707,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           time: formatTime(match.commence_time),
           date: formatDate(match.commence_time),
           timestamp: match.commence_time,
-          homeOdds: match.sites[lowestIndex].odds.h2h[index_home].toFixed(2), 
-          drawOdds: match.sites[lowestIndex].odds.h2h[2].toFixed(2),
-          awayOdds: match.sites[lowestIndex].odds.h2h[index_away].toFixed(2),
+          homeOdds: normHomeOdds, 
+          drawOdds: normDrawOdds,
+          awayOdds: normAwayOdds,
           marketIDs: marketIDsForMatch,
           sport_key: match.sport_key
         });
@@ -841,7 +869,110 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
   
   const [pendingOpen, setPendingOpen] = useState(null);
+  
+  //Normalisation Functions
+  function normalizeData(data) {
+    console.log(data)
+    const cloned = JSON.parse(JSON.stringify(data)); // deep copy
+    console.log(cloned);
+    return cloned.map(market => {
+      const type = market.marketTypeName.toLowerCase();
+      const selections = market.bets
+        .filter(b => b.bestOddsDecimal !== undefined && b.bestOddsDecimal !== null)
+        .map(b => ({
+          name: b.line ? `${b.betName} ${b.line}` : b.betName,
+          odds: b.bestOddsDecimal
+        }));
+      console.log(selections)
+      console.log(type)
 
+      let normalized;
+
+    // Routing logic
+      if (type.includes("first goalscorer") || type.includes("last goalscorer")) {
+        normalized = goalscorerNormalization(selections);
+        console.log(normalized)
+      } else if (
+        type.includes("anytime goalscorer") ||
+        type.includes("hat-trick") ||
+        type.includes("score 2 or more") ||
+        type.includes("player to score")
+      ) {
+        normalized = anytimeGoalscorerNormalization(selections);
+        // normalized = selections.map(p => ({
+        //   name: p.name,
+        //   fairOdds: p.odds // keep as-is
+        // }));
+        console.log(normalized)
+      } else {
+        normalized = standardNormalization(selections);
+        console.log(normalized)
+      }
+      // Replace bestOddsDecimal in original bets
+      market.bets = market.bets.map(b => {
+        const norm = normalized.find(n => n.name === (b.line ? `${b.betName} ${b.line}` : b.betName));
+        return {
+          ...b,
+          bestOddsDecimal: norm ? norm.fairOdds : b.bestOddsDecimal
+        };
+      });
+
+      return market;
+    });
+  }
+
+  // Standard Normalisation function
+  function standardNormalization(selections) {
+    console.log("standard")
+    const implied = selections.map(s => ({ ...s, prob: 1 / s.odds }));
+    const sumProb = implied.reduce((a, b) => a + b.prob, 0);
+    return implied.map(s => ({
+      name: s.name,
+      fairOdds: +(1 / (s.prob / sumProb)).toFixed(2)
+    }));
+  }
+  // First/Last Goalscorer Normalisation function  
+  function goalscorerNormalization(players, gamma = 0.1) {
+    console.log("fsg/lsg")
+    const noGoal = players.find(p => p.name.toLowerCase() === "no goalscorer");
+    const qNG = noGoal ? 1 / noGoal.odds : 0;
+    const targetMass = 1 - qNG;
+
+    let valid = players.filter(
+      p => p.name.toLowerCase() !== "no goalscorer" && p.odds !== 1.01
+    ).map(p => ({ ...p, q: 1 / p.odds }));
+
+    valid.sort((a, b) => b.q - a.q);
+
+    const qMax = Math.max(...valid.map(p => p.q));
+    valid = valid.map(p => ({ ...p, w: Math.pow(p.q / qMax, gamma) }));
+
+    const sumWQ = valid.reduce((sum, p) => sum + p.w * p.q, 0);
+    const C = targetMass / sumWQ;
+
+    return valid.map(p => {
+      const fairProb = C * p.w * p.q;
+      return {
+        name: p.name,
+        fairOdds: +((1 / fairProb) / players.length * 20).toFixed(2)
+      };
+    });
+  }
+
+  // Anytime Goalscorer Normalization
+  function anytimeGoalscorerNormalization(players, topN = 20) {
+    console.log("anytime")
+    let implied = players.map(p => ({ ...p, prob: 1 / p.odds }));
+    implied = implied.slice(0, topN);
+    const sumProb = implied.reduce((a, b) => a + b.prob, 0);
+
+    return implied.map(p => ({
+      name: p.name,
+      fairOdds: +(1 / (p.prob / sumProb)).toFixed(2)
+    }));
+  }
+
+  
 
   const oddschecker = async (marketID) => {
      
@@ -861,7 +992,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         if (data.length === 0){
           setFetchError(true)
         }
-        setMarkets((prevMarkets) => [...prevMarkets, ...data]);
+        // Normalisation 
+        const normalizedData = normalizeData(data);
+        console.log(normalizedData);
+
+
+
+
+        setMarkets((prevMarkets) => [...prevMarkets, ...normalizedData]);
         // setOpen((prevState) => ({
         //   ...prevState,
         //   [marketID]: !prevState[marketID],
@@ -1368,11 +1506,16 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                 <Collapse in={open[market.marketId]}>
                                 <div>
                                   <div id={`collapse-${market.marketId}`}  className="py-2 px-2 mx-0 mb-2 row collapseContent">
-                                    {markets
+                                    {fetchError && markets.length === 0 ? (
+                                      <div className="col-12 text-center py-1 text-lightgrey font-10">
+                                        Oops... An error occured. Please try again later.
+                                      </div>
+                                      ) : (
+                                        markets
                                     .filter(
                                       (m) =>
-                                        m.subeventName === match.fixture &&
-                                        m.marketTypeName === market.market
+                                        m.subeventName.toLowerCase() === match.fixture.toLowerCase() &&
+                                        m.marketTypeName.toLowerCase() === market.market.toLowerCase()
                                     )
                                     .flatMap((m) => m.bets)
                                     .map((bets) => (
@@ -1396,7 +1539,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                         }
                                       </div>
                                       )
-                                    ))}
+                                    )))}
                                   </div>
                                   </div>
                                 </Collapse>
