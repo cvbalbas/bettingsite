@@ -904,6 +904,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         //   fairOdds: p.odds // keep as-is
         // }));
         console.log(normalized)
+      } else if (type.includes("double chance")){
+        normalized = normalizeDoubleChance(selections)
+        console.log(normalized)
       } else {
         normalized = standardNormalization(selections);
         console.log(normalized)
@@ -969,6 +972,23 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     return implied.map(p => ({
       name: p.name,
       fairOdds: +(1 / (p.prob / sumProb)).toFixed(2)
+    }));
+  }
+  function normalizeDoubleChance(selections) {
+    console.log("double")
+    // Convert odds → implied probability
+    const implied = selections.map(s => ({
+      ...s,
+      prob: 1 / s.odds
+    }));
+
+    // Sum of implied probabilities
+    const sumProb = implied.reduce((a, b) => a + b.prob, 0);
+
+    // Scale so they add up to 2 (200%)
+    return implied.map(s => ({
+      name: s.name,
+      fairOdds: +(1 / (s.prob / sumProb * 2)).toFixed(2)
     }));
   }
 
