@@ -684,7 +684,7 @@ app.post('/api/verify-payment', async (req, res) => {
 
     // Check if session already processed
     const existingSession = await executeQuery(
-      'SELECT id FROM bets_wallet_transactions WHERE session_id = ?',
+      'SELECT transaction_id FROM bets_wallet_transactions WHERE session_id = ?',
       [sessionId]
     );
     if (existingSession.length > 0) {
