@@ -152,6 +152,7 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
         console.log(data.error)
       }
       if (!response.ok) {
+        console.error(data.error)
         throw new Error(data.error || "Something went wrong");
       }
     } catch (error) {
@@ -169,7 +170,7 @@ const SignupModal = ({ showModal, closeModal, user, setUser, setLoginModalOpen, 
         body: JSON.stringify({phoneNumber}),
       });
       const data = await response.json();
-      if (data.message === "exists") {
+      if (data.exists === true) {
         return true
       } else {
         return false

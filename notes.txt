@@ -1,6 +1,9 @@
 Normalise odds
 double chance = 200%
 
+REMOVE WIN MARKET NEXT
+REMOVE MARKETS WITH INCOMPLETE STUFF (penalty)
+
 
 separate about us
 Free Trial finished
@@ -9,10 +12,201 @@ Free Trial finished
 logout after 1hr inactivity
 SQL disconnects/fails when inactive 
 
+stick to the same league in refresh
+
+
 betssidebar does not update odds 
 betssidebar does not do %
+DONE
 
 remove console.log
 remove Win Market
 
+DONE
 phone modal is opening while it's getting the sql stuff for membership details
+
+
+
+if player assist do nothing
+if to score a hattrick/to score 2 or more goals/anytime goalscorer do nothing
+
+if 
+
+
+wait for fcn
+anytime goalscorer
+player assists
+to score 2 or more goals
+to score a hat-trick
+
+
+normalise normally
+both teams to score
+both teams to score in 1st half
+both teams to score in 2nd half
+both teams to score in both halves
+clean sheet
+goal in both halves
+half time
+half time/full time
+highest scoring half
+match result and both teams to score
+second half result
+team to score first
+team to score last
+time of first goal
+total away goals exact
+total goals exact
+total goals exact - 1st half
+total goals exact - 2nd half
+total goals odd/even
+total goals odd/even - 2nd half
+total home goals exact
+winning margin
+
+
+may not be complete
+correct score
+correct score - 1st half
+
+remove - put in server.js
+handipcap - 1st half
+total goals 3 way
+
+total goals 3-way
+win market
+
+add to 200%
+double chance
+
+use hish fcn
+first goalscorer
+last goalscorer
+
+over/under fcn REMOVE ONE WITHOUT PAIR
+DONE
+total away goals
+total goals - 1st half
+total goals - 2nd half
+total goals over/under
+total home goals
+I THINK THIS SHOULDN'T BE THE SAME AS TOTAL GOALS
+match result and over/under 2 5
+match result and over/under 3 5
+match result and over/under 4 5
+
+
+
+conditional remove if incomplete
+normalised but need to hide if incomplete
+penalty in match /
+to score a penalty /
+to miss a penalty /
+
+special fcn
+to score in both halves 
+DONE
+
+to win either half
+DONE
+
+to win both halves 
+DONE
+#5 MULTIPLY the probability of each team from "half time" and "second half result" together
+e.g (half time Paris) times (second half result Paris)
+Half Time 
+m 1.95 => 0.5128
+draw 2.60 => 0.3846
+z 6.50 => 0.1538
+---------
+total = 1.0512
+
+Normalised Half Time
+m 0.5128 / 1.0512 = 0.4878 => 2.05
+Draw: 0.3846 / 1.0512 = 0.3659 => 2.73
+Z: 0.1538 / 1.0512 = 0.1462 => 6.84
+
+
+Second Half Result 
+m 1.85 => 0.5405
+draw 3 => 0.3333
+z 5.50 => 0.1818
+---------
+total: 1.0556
+
+Normalised second half result
+M: 0.5405 / 1.0556 = 0.5120 => 1.95
+Draw: 0.3333 / 1.0556 = 0.3160 => 3.16
+Z: 0.1818 / 1.0556 = 0.1720=> 5.81
+
+
+Halftime × second half = normalised Win Both Halves
+m: 0.4878 x 0.5120 = 0.2499 => 4.00
+z: 0.1462 x 0.1720 = 0.0251 => 39.8
+
+
+to win from behind
+DONE ?? 
+o win from behind would have the same steps as 5?
+Normalisef value of win from behind Paris is equal to normalise(Team To Score First Lorient) times normalise(Win Market Paris)
+
+0: {marketTypeName: 'Win Market', name: 'Union Berlin', odds: 2.25}
+1: {marketTypeName: 'Win Market', name: 'Borussia Mgladbach', odds: 3.2}
+2: {marketTypeName: 'Win Market', name: 'Draw', odds: 3.75}
+3: {marketTypeName: 'Team To Score First', name: 'Union Berlin', odds: 1.85}
+4: {marketTypeName: 'Team To Score First', name: 'Borussia Mgladbach', odds: 2.25}
+5: {marketTypeName: 'Team To Score First', name: 'No Goals', odds: 13}
+6: {marketTypeName: 'To Win From Behind', name: 'Union Berlin', odds: 11.5}
+7: {marketTypeName: 'To Win From Behind', name: 'Borussia Mgladbach', odds: 15}
+
+
+0: {name: 'Union Berlin', fairOdds: 2.3, marketTypeName: 'Win Market'}
+1: {name: 'Borussia Mgladbach', fairOdds: 3.28, marketTypeName: 'Win Market'}
+2: {name: 'Draw', fairOdds: 3.84, marketTypeName: 'Win Market'}
+3: {name: 'Union Berlin', fairOdds: 1.96, marketTypeName: 'Team To Score First'}
+4: {name: 'Borussia Mgladbach', fairOdds: 2.39, marketTypeName: 'Team To Score First'}
+5: {name: 'No Goals', fairOdds: 13.8, marketTypeName: 'Team To Score First'}
+6: {marketTypeName: 'To Win From Behind', name: 'Union Berlin', odds: 11.5, fairOdds: 5.497}
+7: {marketTypeName: 'To Win From Behind', name: 'Borussia Mgladbach', odds: 15, fairOdds: 6.429}
+
+
+
+to win to nil
+DONE ???
+0: {name: 'Union Berlin', fairOdds: 2.3, marketTypeName: 'Win Market'}
+1: {name: 'Borussia Mgladbach', fairOdds: 3.28, marketTypeName: 'Win Market'}
+2: {name: 'Draw', fairOdds: 3.84, marketTypeName: 'Win Market'}
+3: {marketTypeName: 'Clean Sheet', name: 'Borussia Mgladbach', odds: 4.2, fairOdds: 4.437}
+4: {marketTypeName: 'Clean Sheet', name: 'Borussia Mgladbach - No', odds: 1.222, fairOdds: 1.291}
+5: {marketTypeName: 'Clean Sheet', name: 'Union Berlin', odds: 3.3, fairOdds: 3.476}
+6: {marketTypeName: 'Clean Sheet', name: 'Union Berlin - No', odds: 1.333, fairOdds: 1.404}
+7: {marketTypeName: 'To Win To Nil', name: 'Union Berlin', odds: 4.4, fairOdds: 7.995}
+8: {marketTypeName: 'To Win To Nil', name: 'Borussia Mgladbach', odds: 6, fairOdds: 14.553}
+
+to win to nil 
+m: 2.75
+z: 14
+
+normalised win market
+m: 1.50
+draw: 5.05
+z: 7.27
+
+clean sheet
+M Yes: 2.45 => 0.408
+Z Yes: 8.00 => 0.125
+M No: 1.58 => 0.633
+Z No: 1.10 => 0.909
+
+to win to nil = win market x clean sheet
+m: 1.50 x 2.45 = 3.675
+z: 7.27 x 8 = 58.16
+
+NORMALISED CLEAN SHEET BY PAIR, SPECIAL FUNCTION
+
+
+DONE
+put a timestamp in each data element in oddschecker 
+every 10 mins, check each timestamp from markets, whichever is oldest, update that.
+
+672 for some reason it's giving a past match and gives an error because there's no odds for that match anymore.

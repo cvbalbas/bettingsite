@@ -4,7 +4,7 @@ import empty from "../images/Empty.png"
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 
 
-export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass, setUser}) {
+export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass, setUser, percentOdds}) {
 
   const [invalidMatches, setInvalidMatches] = useState([]);
 
@@ -111,7 +111,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
       const data = await response.json();
       console.log('Odds saved successfully:', data);
 
-      setWalletBalance(data.results[0]["wallet_balance"]);
+      setWalletBalance(data["wallet_balance"]);
       closeSidebar();
       handleClearAllBets();
 
@@ -193,7 +193,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                       <div className='font-12 text-lightgrey text-start mt-2'>{bet.selectedMarket}</div>
                       <div className='font-15 text-start fw-bold d-flex justify-content-between'>
                         <div className='text-white'>{bet.selectedType}</div>
-                        <div className='text-orange'>{bet.selectedOdds}</div>
+                        <div className='text-orange'>{percentOdds ?  `${((1 / bet.selectedOdds) * 100).toFixed(2)}%` : Number.isInteger(bet.selectedOdds*1) ? bet.selectedOdds*1 : (bet.selectedOdds*1).toFixed(2) }</div>
                       </div>
                       <div className='d-flex justify-content-between align-items-center mt-2 '>
                         <div className='text-start col-6 d-flex bg-darkblue align-items-center justify-content-between p-1 rounded'>

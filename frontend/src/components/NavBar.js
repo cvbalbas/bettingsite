@@ -8,29 +8,54 @@ export default function Navbar({ openLoginModal, openSignupModal, user, setUser,
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch(`/api/notifications/${user.uid}`);
-      const data = await response.json();
-      setNotifications(data.notifications);
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    }
-  };
-  
-  useEffect(() => {
-    if (user) {
-      fetchNotifications();
-    }
-  }, [user]);
-
-  const markNotificationsRead = async () => {
-    await fetch('/api/mark-notifications-read', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: user.uid }),
+const fetchNotifications = async () => {
+  try {
+    const token = await user.getIdToken(); // Get Firebase ID token
+    const response = await fetch('/api/notifications', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send token
+      },
     });
-  };
+    const data = await response.json();
+    if (data.success) {
+      setNotifications(data.notifications);
+    } else {
+      console.error("Failed to fetch notifications:", data.error);
+    }
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+  }
+};
+
+useEffect(() => {
+  if (user) {
+    fetchNotifications();
+  }
+}, [user]);
+
+const markNotificationsRead = async () => {
+  try {
+    const token = await user.getIdToken(); // Get Firebase ID token
+    const response = await fetch('/api/mark-notifications-read', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Send token
+      },
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      // Optionally clear local state after marking as read
+      // setNotifications([]);
+    } else {
+      console.error("Failed to mark notifications as read:", data.error);
+    }
+  } catch (error) {
+    console.error("Error marking notifications as read:", error);
+  }
+};
+
   
   useEffect(() => {
     if (showNotifications) {

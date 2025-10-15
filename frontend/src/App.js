@@ -19,6 +19,10 @@ import React, { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 import { Navigate } from 'react-router-dom';
 import epl from "./images/epl.png";
+import ligue1 from "./images/ligue1.png";
+import bundesliga from "./images/bundesliga.png";
+
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -56,16 +60,25 @@ function App() {
     isPremiumTrial: false,
     trialExpiresAt: null,
   });
-  const [registeredPhone, setRegisteredPhone] = useState(false);
+  const [registeredPhone, setRegisteredPhone] = useState(true);
 
   const [coinsToAdd, setCoinsToAdd] = useState(0);
   const [showAlert, setShowAlert] = useState(false);
   const [alertText, setAlertText] = useState('');
   const [animationClass, setAnimationClass] = useState('');
 
-
-  const [selectedLeague, setSelectedLeague] = useState({ name: "Premier League", icon: epl, key: "soccer_epl" });
-
+  const [percentOdds, setPercentOdds] = useState(false);
+  const [selectedLeague, setSelectedLeague] = useState(() => {
+    try {
+      const savedLeague = localStorage.getItem("selectedLeague");
+      if (savedLeague) {
+        return JSON.parse(savedLeague);
+      }
+    } catch (err) {
+      console.error("Error parsing selectedLeague from localStorage:", err);
+    }
+    return { name: "Premier League", icon: epl, key: "soccer_epl" };
+  });
   useEffect(() => {
     // Check if the disclaimer has been shown before
     const isDisclaimerShown = localStorage.getItem('isDisclaimerShown');
@@ -91,15 +104,17 @@ function App() {
         });
   
         const data = await response.json();
-        setWalletBalance(data.results[0]?.wallet_balance || 0);
-        localStorage.setItem('walletBalance', (data.results[0]?.wallet_balance || 0));
-        setRole(data.results[0]?.admin ?? false); // Ensure role is always set
+        console.log(data)
+        setWalletBalance(data.user?.wallet_balance || 0);
+        console.log(data.user?.wallet_balance)
+        localStorage.setItem('walletBalance', (data.user?.wallet_balance || 0));
+        setRole(data.user?.admin ?? false); // Ensure role is always set
         setIsPremium({
-          isPremium: Boolean(data.results[0]?.isPremium),
-          isPremiumTrial: Boolean(data.results[0]?.isPremiumTrial),
-          trialExpiresAt: data.results[0]?.trialExpiresAt || null,
+          isPremium: Boolean(data.user?.isPremium),
+          isPremiumTrial: Boolean(data.user?.isPremiumTrial),
+          trialExpiresAt: data.user?.trialExpiresAt || null,
         });
-        setRegisteredPhone(data.results[0]?.hashed_phone ?? false)
+        setRegisteredPhone(data.user?.hashed_phone ?? false)
         // console.log("User Info:", data);
       } catch (error) {
         console.error("Error getting wallet balance:", error);
@@ -166,6 +181,11 @@ function App() {
     localStorage.setItem('betsOpen', betsOpen);
   }, [betsOpen]);
 
+  useEffect(() => {
+    // console.log(betsOpen)
+    localStorage.setItem('selectedLeague', JSON.stringify(selectedLeague));
+  }, [selectedLeague]);
+
   const handleClearAllBets = () => {
     setSelectedOdds([]); // Clear all selected bets
     setBetAmounts({});   // Reset all bet amounts
@@ -224,7 +244,7 @@ function App() {
             <Route path = '/' element={
               <>
                 <Selector selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} />
-                <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass} setPhoneSetUp={setPhoneSetUp} setRole={setRole} openSignupModal={openSignupModal} setLoading={setLoading} selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} />
+                <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass} setPhoneSetUp={setPhoneSetUp} setRole={setRole} openSignupModal={openSignupModal} setLoading={setLoading} selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} percentOdds={percentOdds} setPercentOdds={setPercentOdds} />
               </>
               }>
             </Route>
@@ -258,7 +278,7 @@ function App() {
           closeSidebar={closeSidebar}  betAmounts = {betAmounts} setBetAmounts = {setBetAmounts} 
           estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} 
           openSignupModal={openSignupModal} handleClearAllBets={handleClearAllBets} user={user} setWalletBalance={setWalletBalance} 
-          setShowAlert={setShowAlert} setAlertText={setAlertText} setAnimationClass={setAnimationClass} setUser={setUser} />
+          setShowAlert={setShowAlert} setAlertText={setAlertText} setAnimationClass={setAnimationClass} setUser={setUser} percentOdds={percentOdds} />
         </div>
       </div>
       <div id="recaptcha-container"></div> {/* reCAPTCHA container */}

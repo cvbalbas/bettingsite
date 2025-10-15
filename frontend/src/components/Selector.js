@@ -6,7 +6,6 @@ import bundesliga from "../images/bundesliga.png";
 import seriea from "../images/seriea.png";
 import champions from "../images/championsleague.png";
 import laliga from "../images/laliga.png";
-import primeira from "../images/primeiraliga.png";
 
 export default function App({selectedLeague, setSelectedLeague}) {
   const leagues = [

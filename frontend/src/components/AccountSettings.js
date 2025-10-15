@@ -326,7 +326,7 @@ function filterBets(betHistory){
                   month: 'long',
                   year: 'numeric',
                 }).format(new Date(isPremium.trialExpiresAt))}.` 
-                : ''} </span>
+                : isPremium.isPremiumTrial && (new Date(isPremium.trialExpiresAt) <= new Date()) ? 'Trial expired — upgrade for % conversion.':''} </span>
               )}
             </div>
           </div>
