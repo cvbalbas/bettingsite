@@ -66,9 +66,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     } else {
       setPercentOdds(false)
     }
-    console.log(matches)
-    console.log(filteredGroupedMatches)
-    console.log(markets)
+    // console.log(matches)
+    // console.log(filteredGroupedMatches)
+    // console.log(markets)
   }, [isPremium, user, markets, matches, loadedMatches, open, searchMarket, filteredGroupedMatches])
 
   
@@ -78,7 +78,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       try {
         const response = await fetch(`/api/odds?league=${league.key}`); 
         const data = await response.json();
-        console.log("update")
+        // console.log("update")
         // console.log(data.data)
         // data.data[0]["home_team"] = "Sunderland"
         // data.data[0]["teams"][0] = "Aston Villa"
@@ -121,7 +121,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         //   time:"21 October 2024 at 20:00",
         //   sport_key: "soccer_epl"
         // })
-        console.log(data)
+        // console.log(data)
         setMarketIDs(data); 
         
       } catch (error) {
@@ -662,7 +662,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       const hasPenaltyInMatch = marketIDsForMatch.some(
         m => m.market.toLowerCase() === "penalty in match"
       );
-      console.log(hasPenaltyInMatch)
+      // console.log(hasPenaltyInMatch)
 
       if (!hasPenaltyInMatch) { // remove penalty markets if penalty in match is missing
         marketIDsForMatch = marketIDsForMatch.filter(
@@ -671,9 +671,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
               m.market.toLowerCase()
             )
         );
-        console.log(marketIDsForMatch)
+        // console.log(marketIDsForMatch)
       } else { // check penalty in match bets
-        console.log("penalty in match included")
+        // console.log("penalty in match included")
         let searchMarketID = 0
         for(let i = 0; i < marketIDsForMatch.length; i++){
           if(marketIDsForMatch[i].market.toLowerCase() === "penalty in match"){
@@ -681,7 +681,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           }
         }
 
-        console.log(searchMarketID)
+        // console.log(searchMarketID)
 
         // fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=" + searchMarketID  + "&repub=OC")
         // .then((response) => response.json())
@@ -836,13 +836,13 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       }
       return acc;
     }, {});
-    console.log(newFiltered)
+    console.log("filtered grouped matches: ", newFiltered)
     setFilteredGroupedMatches(newFiltered);
   }, [matches, searchTerm]);
   
  
   const handleOddsClick = (matchId, type, odds, market, match) => {
-    console.log(match)
+    // console.log(match)
     const nowUnix = Math.floor(Date.now() / 1000); // current time in seconds
     // Compare
     if (match.timestamp < nowUnix) {
@@ -890,37 +890,37 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
 
       
-      console.log(open)
-      console.log(openMarketsMatchIds)
+      // console.log(open)
+      // console.log(openMarketsMatchIds)
       let searchMarketID = openMarketsMatchIds[0]
       if (openMarketsMatchIds.length !== 0){
         let matchToFind = findParentAndMarket(filteredGroupedMatches, searchMarketID)
-        console.log(matchToFind)
+        // console.log(matchToFind)
         let marketName = matchToFind.market.market
         let match = matchToFind.parent
-        console.log(marketName)
-        console.log(match)
+        // console.log(marketName)
+        // console.log(match)
         if (marketName.toLowerCase() === "to score a penalty" || 
             marketName.toLowerCase() === "to miss a penalty"){
           searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to score a penalty" ||
           market.market.toLowerCase() === "to miss a penalty" || market.market.toLowerCase() === "penalty in match").map((market) => market.marketId).join(",")
-          console.log(searchMarketID)
+          // console.log(searchMarketID)
         } else if (marketName.toLowerCase() === "to score in both halves") {
           searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to score in both halves" ||
           market.market.toLowerCase() === "both teams to score in both halves").map((market) => market.marketId).join(",")
-          console.log(searchMarketID)
+          // console.log(searchMarketID)
         } else if (marketName.toLowerCase() === "to win either half" ) {
           searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to win either half" || market.market.toLowerCase() === "half time" || market.market.toLowerCase() === "second half result" ).map((market) => market.marketId).join(",")
-          console.log(searchMarketID)
+          // console.log(searchMarketID)
         } else if (marketName.toLowerCase() === "to win both halves") {
           searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "half time" || market.market.toLowerCase() === "second half result" || market.market.toLowerCase() === "to win both halves" ).map((market) => market.marketId).join(",")
-          console.log(searchMarketID)
+          // console.log(searchMarketID)
         } else if (marketName.toLowerCase() === "to win from behind") {
           searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to win from behind" || market.market.toLowerCase() === "team to score first" || market.market.toLowerCase() === "win market" ).map((market) => market.marketId).join(",")
-          console.log(searchMarketID)
+          // console.log(searchMarketID)
         } else if (marketName.toLowerCase() === "to win to nil") {
           searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to win to nil" || market.market.toLowerCase() === "clean sheet" || market.market.toLowerCase() === "win market" ).map((market) => market.marketId).join(",")
-          console.log(searchMarketID)
+          // console.log(searchMarketID)
         } 
 
       
@@ -928,10 +928,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         .then((response) => response.json())
         .then((data) => {
           data = simplifyData(data)
-          console.log(data)
+          // console.log(data)
 
           const normalizedData = normalizeData(data,marketName);
-          console.log(normalizedData);
+          console.log("normalized data: ", normalizedData);
 
 
           // data[0]["bets"][0]["bestOddsDecimal"] = 10 //For testing only
@@ -1001,7 +1001,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         if (Array.isArray(obj.marketIDs)) {
           const found = obj.marketIDs.find(m => m.marketId === targetMarketId);
           const index = obj.marketIDs.findIndex(m => m.marketId === targetMarketId);
-          console.log(index)
+          // console.log(index)
           if (found) return { parent: obj, market: found, index: index};
         }
       }
@@ -1031,7 +1031,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
     const matchToFind = data[0].marketId
     const match = findParentAndMarket(filteredGroupedMatches, matchToFind)
-    console.log(match)
+    // console.log(match)
 
     if (!Array.isArray(data)) {
       console.error("normalizeData: expected array of markets");
@@ -1058,7 +1058,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       });
     });
 
-    console.log("Combined selections:", allSelections);
+    console.log("Combined market selections:", allSelections);
     let normalized;
 
     // Normalize markets that depend on others
@@ -1068,22 +1068,23 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       console.log("penalty")
       let penaltyInMatchSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "penalty in match")
-      console.log(penaltyInMatchSelections)
+      // console.log(penaltyInMatchSelections)
       let normalizedPenaltyInMatch = standardNormalization(penaltyInMatchSelections)
       normalizedPenaltyInMatch.forEach((match) => match.marketTypeName = "Penalty In Match")
-      console.log(normalizedPenaltyInMatch)
+      // console.log(normalizedPenaltyInMatch)
       
       let allPenalty = [...allSelections.filter((match) => match.marketTypeName.toLowerCase() !== "penalty in match"), ...normalizedPenaltyInMatch]
-      console.log(allPenalty)
+      // console.log(allPenalty)
       normalized = penaltyNormalization(allPenalty);
-      console.log(normalized)
+      console.log("Normalized: ", normalized)
 
 
     } else if (type.includes("match result and over/under")) {
 
-      console.log(allSelections)
+      // console.log(allSelections)
       normalized = normalizeOverUnderMix(allSelections)
       console.log("pair mix")
+      console.log("Normalized: ", normalized)
 
     } else if (type.includes("total goals over/under") 
       || type.includes("total away goals") 
@@ -1091,9 +1092,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       || type.includes("total goals - 1st half")
       || type.includes("total goals - 2nd half")){
 
-      console.log(allSelections)
+      // console.log(allSelections)
       normalized = normalizeOverUnder(allSelections)
       console.log("pair")
+      console.log("Normalized: ", normalized)
 
     } else if (type.includes("first goalscorer") || type.includes("last goalscorer")) {
       normalized = goalscorerNormalization(allSelections);
@@ -1110,29 +1112,32 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         fairOdds: p.odds,
         marketTypeName: origMarketTypeName
       }));
+      console.log("do nothing")
 
     } else if (type.includes("double chance")) {
+      console.log("double chance")
       normalized = normalizeDoubleChance(allSelections);
       normalized.forEach(bet => bet.marketTypeName = origMarketTypeName)
+      console.log("Normalized: ", normalized)
 
     } else if (type === "to score in both halves"){
 
       console.log("to score in both halves")
       // normalize both teams to score in both halves
       let bothTeamsToScoreInBothHalvesSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "both teams to score in both halves")
-      console.log(bothTeamsToScoreInBothHalvesSelections)
+      // console.log(bothTeamsToScoreInBothHalvesSelections)
       let normalizedBothTeamsToScoreInBothHalves = standardNormalization(bothTeamsToScoreInBothHalvesSelections)
       normalizedBothTeamsToScoreInBothHalves.forEach((match) => match.marketTypeName = "Both Teams To Score In Both Halves")
-      console.log(normalizedBothTeamsToScoreInBothHalves)
+      // console.log(normalizedBothTeamsToScoreInBothHalves)
 
       // merge
       let bothHalves = [...allSelections.filter((match) => match.marketTypeName.toLowerCase() !== "both teams to score in both halves"), ...normalizedBothTeamsToScoreInBothHalves]
-      console.log(bothHalves)
+      // console.log(bothHalves)
 
       // normalize to score in both halves
       normalized = bothHalvesNormalizaion(bothHalves);
       normalized = [...normalizedBothTeamsToScoreInBothHalves, ...normalized]
-      console.log(normalized)
+      console.log("Normalized: ", normalized)
 
     } else if (type === "to win both halves"){
 
@@ -1140,27 +1145,27 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       // normalize half time
       let halfTimeSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "half time")
-      console.log(halfTimeSelections)
+      // console.log(halfTimeSelections)
       let normalizedHalfTime = standardNormalization(halfTimeSelections)
       normalizedHalfTime.forEach((match) => match.marketTypeName = "Half Time")
-      console.log(normalizedHalfTime)
+      // console.log(normalizedHalfTime)
 
       // normalize second half
       let secondHalfSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "second half result")
-      console.log(secondHalfSelections)
+      // console.log(secondHalfSelections)
       let normalizedSecondHalf = standardNormalization(secondHalfSelections)
       normalizedSecondHalf.forEach((match) => match.marketTypeName = "Second Half Result")
-      console.log(normalizedSecondHalf)
+      // console.log(normalizedSecondHalf)
 
 
       // merge
       let bothHalves = [...allSelections.filter((match) => match.marketTypeName.toLowerCase() === "to win both halves"), ...normalizedHalfTime, ...normalizedSecondHalf]
-      console.log(bothHalves)
+      // console.log(bothHalves)
 
       // normalize
       normalized = toWinBothHalvesNormalizaion(bothHalves);
       normalized = [...normalizedSecondHalf, ...normalizedHalfTime, ...normalized]
-      console.log(normalized)
+      console.log("Normalized: ", normalized)
 
     } else if (type === "to win either half"){
 
@@ -1168,27 +1173,27 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       // normalize half time
       let halfTimeSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "half time")
-      console.log(halfTimeSelections)
+      // console.log(halfTimeSelections)
       let normalizedHalfTime = standardNormalization(halfTimeSelections)
       normalizedHalfTime.forEach((match) => match.marketTypeName = "Half Time")
-      console.log(normalizedHalfTime)
+      // console.log(normalizedHalfTime)
 
       // normalize second half
       let secondHalfSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "second half result")
-      console.log(secondHalfSelections)
+      // console.log(secondHalfSelections)
       let normalizedSecondHalf = standardNormalization(secondHalfSelections)
       normalizedSecondHalf.forEach((match) => match.marketTypeName = "Second Half Result")
-      console.log(normalizedSecondHalf)
+      // console.log(normalizedSecondHalf)
 
 
       // merge
       let bothHalves = [...allSelections.filter((match) => match.marketTypeName.toLowerCase() === "to win either half"), ...normalizedHalfTime, ...normalizedSecondHalf]
-      console.log(bothHalves)
+      // console.log(bothHalves)
 
       // normalize
       normalized = toWinEitherHalfNormalizaion(bothHalves);
       normalized = [...normalizedSecondHalf, ...normalizedHalfTime, ...normalized]
-      console.log(normalized)
+      console.log("Normalized: ", normalized)
 
     } else if (type === "to win from behind"){
 
@@ -1196,10 +1201,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       // normalize team to score first
       let scoreFirstSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "team to score first")
-      console.log(scoreFirstSelections)
+      // console.log(scoreFirstSelections)
       let normalizedScoreFirst = standardNormalization(scoreFirstSelections)
       normalizedScoreFirst.forEach((match) => match.marketTypeName = "Team To Score First")
-      console.log(normalizedScoreFirst)
+      // console.log(normalizedScoreFirst)
 
       // normalize win market
       // let winMarketSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "win market")
@@ -1218,10 +1223,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           odds: match.parent.drawOdds
         }
       ]
-      console.log(winMarketSelections)
+      console.log("Win Market: ", winMarketSelections)
       let normalizedWinMarket = standardNormalization(winMarketSelections)
       normalizedWinMarket.forEach((match) => match.marketTypeName = "Win Market")
-      console.log(normalizedWinMarket)
+      // console.log(normalizedWinMarket)
 
 
 
@@ -1229,12 +1234,12 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       // merge
       let behind = [...allSelections.filter((match) => match.marketTypeName.toLowerCase() === "to win from behind"), ...normalizedWinMarket, ...normalizedScoreFirst]
-      console.log(behind)
+      // console.log(behind)
 
       // normalize
       normalized = toWinFromBehindNormalization(behind);
       normalized = [...normalizedWinMarket, ...normalizedScoreFirst, ...normalized]
-      console.log(normalized)
+      console.log("Normalized: ", normalized)
 
     } else if (type === "to win to nil"){
 
@@ -1242,10 +1247,10 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       // normalize clean sheet
       let cleanSheetSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "clean sheet")
-      console.log(cleanSheetSelections)
+      // console.log(cleanSheetSelections)
       let normalizedCleanSheet = cleanSheetNormalization(cleanSheetSelections)
       normalizedCleanSheet.forEach((match) => match.marketTypeName = "Clean Sheet")
-      console.log(normalizedCleanSheet)
+      // console.log(normalizedCleanSheet)
 
       // normalize win market
       // let winMarketSelections = allSelections.filter((match) => match.marketTypeName.toLowerCase() === "win market")
@@ -1265,20 +1270,20 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           odds: match.parent.drawOdds
         }
       ]
-      console.log(winMarketSelections)
+      console.log("Win Market: ", winMarketSelections)
       let normalizedWinMarket = standardNormalization(winMarketSelections)
       normalizedWinMarket.forEach((match) => match.marketTypeName = "Win Market")
-      console.log(normalizedWinMarket)
+      // console.log(normalizedWinMarket)
 
 
       // merge
       let nil = [...allSelections.filter((match) => match.marketTypeName.toLowerCase() === "to win to nil"), ...normalizedWinMarket, ...normalizedCleanSheet]
-      console.log(nil)
+      // console.log(nil)
 
       // normalize
       normalized = toWinToNilNormalization(nil);
       normalized = [...normalizedWinMarket, ...normalizedCleanSheet, ...normalized]
-      console.log(normalized)
+      console.log("Normalized: ", normalized)
 
     } else if (type === "clean sheet"){
 
@@ -1286,13 +1291,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       // normalize
       normalized = cleanSheetNormalization(allSelections);
-      console.log(normalized)
+      console.log("Normalized: ", normalized)
 
     } else {
       normalized = standardNormalization(allSelections);
       normalized.forEach(bet => bet.marketTypeName = origMarketTypeName)
+      console.log("Normalized: ", normalized)
     }
-    console.log(normalized)
+   
     cloned.forEach(market => {
       market.bets = market.bets
         // Keep only bets that exist in normalized (matched by name + marketTypeName)
@@ -1365,7 +1371,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     //     };
     //   });
     // });
-    console.log(cloned)
+    console.log("New Markets: ", cloned)
 
     return cloned;
   }
@@ -1470,7 +1476,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     const teamToScoreFirst = allSelections.filter(
       s => s.marketTypeName.toLowerCase() === "team to score first"
     );
-    console.log(toWinFromBehind, winMarket, teamToScoreFirst)
+    // console.log(toWinFromBehind, winMarket, teamToScoreFirst)
 
     if (!toWinFromBehind.length || !winMarket.length || !teamToScoreFirst.length) {
       console.warn("Missing required markets.");
@@ -1487,20 +1493,20 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     const normalized = toWinFromBehind.map(sel => {
       const teamName = sel.name;
       const opponentName = getOpponentName(teamName);
-      console.log(opponentName)
+      // console.log(opponentName)
       if (!opponentName) return sel;
 
       const win = winMarket.find(w => w.name.toLowerCase() === teamName.toLowerCase() );
       const first = teamToScoreFirst.find(t => t.name.toLowerCase()  === opponentName.toLowerCase() );
-      console.log(win, first)
+      // console.log(win, first)
       if (!win || !first) return sel;
 
       // Formula: fairOdds = opponent (to score first) × team (to win market)
       const fairOdds = first.fairOdds * win.fairOdds;
-      console.log(fairOdds)
+      // console.log(fairOdds)
       return { ...sel, fairOdds: parseFloat(fairOdds.toFixed(3)) };
     });
-    console.log(normalized)
+    // console.log(normalized)
 
     return normalized;
 
@@ -1580,7 +1586,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
     // Compute for both teams
     const teams = toWinEitherHalf.map(t => normalizeTeam(t.name)).filter(Boolean);
-    console.log(teams)
+    // console.log(teams)
 
     // Merge back into results
     const normalized = toWinEitherHalf.map(sel => {
@@ -1733,24 +1739,24 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
   // Penalty Normalisation function
   function penaltyNormalization(allSelections) {
-    console.log("penalty normalisation")
+    // console.log("penalty normalisation")
     // Clone to avoid side effects
     const cloned = JSON.parse(JSON.stringify(allSelections));
 
     // Extract the key odds
     const yesMarket = cloned.find(m => m.marketTypeName.toLowerCase() === 'penalty in match' && m.name.toLowerCase() === 'yes');
     if (!yesMarket) return cloned; // if not found, nothing to do
-    console.log(yesMarket)
+    // console.log(yesMarket)
     const yesProb = 1 / yesMarket.fairOdds;
-    console.log("yesProb", yesProb)
+    // console.log("yesProb", yesProb)
     // Group penalty odds by team
     const toScore = cloned.filter(m => m.marketTypeName.toLowerCase() === 'to score a penalty');
     const toMiss = cloned.filter(m => m.marketTypeName.toLowerCase() === 'to miss a penalty');
-    console.log("toScore", toScore)
-    console.log("toMiss", toMiss)
+    // console.log("toScore", toScore)
+    // console.log("toMiss", toMiss)
     // Combine both sets by team name
     const teams = [...new Set([...toScore.map(m => m.name), ...toMiss.map(m => m.name)])];
-    console.log(teams)
+    // console.log(teams)
     // Get current total probability across all teams
     let totalProb = 0;
     const teamData = teams.map(team => {
@@ -1764,7 +1770,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
       return { team, score, miss, teamProb };
     });
-    console.log(teamData)
+    // console.log(teamData)
 
     // Scale factor so totalProb matches yesProb
     const scale = yesProb / totalProb;
@@ -1799,7 +1805,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   }
   // First/Last Goalscorer Normalisation function  
   function goalscorerNormalization(players, gamma = 0.1) {
-    console.log("fsg/lsg")
+    // console.log("fsg/lsg")
     const noGoal = players.find(p => p.name.toLowerCase() === "no goalscorer");
     const qNG = noGoal ? 1 / noGoal.odds : 0;
     const targetMass = 1 - qNG;
@@ -1827,7 +1833,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
   // Anytime Goalscorer Normalization
   function anytimeGoalscorerNormalization(players, topN = 20) {
-    console.log("anytime")
+    // console.log("anytime")
     let implied = players.map(p => ({ ...p, prob: 1 / p.odds }));
     implied = implied.slice(0, topN);
     const sumProb = implied.reduce((a, b) => a + b.prob, 0);
@@ -1838,7 +1844,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     }));
   }
   function normalizeDoubleChance(selections) {
-    console.log("double")
+    // console.log("double")
     // Convert odds → implied probability
     const implied = selections.map(s => ({
       ...s,
@@ -1886,36 +1892,40 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   }
 
   
+  const [lockedMarkets, setLockedMarkets] = useState({});
 
   const oddschecker = async (marketID, marketName, match) => {
-    console.log(marketName)
-    console.log(match)
-    console.log(marketID)
+    if (lockedMarkets[marketID]) return;
+    // console.log(marketName)
+    // console.log(match)
+    // console.log(marketID)
     const now = Date.now();
 
+    setLockedMarkets(prev => ({ ...prev, [marketID]: true }));
+    
 
     let searchMarketID = marketID
     if (marketName.toLowerCase() === "to score a penalty" || 
         marketName.toLowerCase() === "to miss a penalty"){
       searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to score a penalty" ||
       market.market.toLowerCase() === "to miss a penalty" || market.market.toLowerCase() === "penalty in match").map((market) => market.marketId).join(",")
-      console.log(searchMarketID)
+      // console.log(searchMarketID)
     } else if (marketName.toLowerCase() === "to score in both halves") {
       searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to score in both halves" ||
       market.market.toLowerCase() === "both teams to score in both halves").map((market) => market.marketId).join(",")
-      console.log(searchMarketID)
+      // console.log(searchMarketID)
     } else if (marketName.toLowerCase() === "to win either half" ) {
       searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to win either half" || market.market.toLowerCase() === "half time" || market.market.toLowerCase() === "second half result" ).map((market) => market.marketId).join(",")
-      console.log(searchMarketID)
+      // console.log(searchMarketID)
     } else if (marketName.toLowerCase() === "to win both halves") {
       searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "half time" || market.market.toLowerCase() === "second half result" || market.market.toLowerCase() === "to win both halves" ).map((market) => market.marketId).join(",")
       console.log(searchMarketID)
     } else if (marketName.toLowerCase() === "to win from behind") {
       searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to win from behind" || market.market.toLowerCase() === "team to score first" || market.market.toLowerCase() === "win market" ).map((market) => market.marketId).join(",")
-      console.log(searchMarketID)
+      // console.log(searchMarketID)
     } else if (marketName.toLowerCase() === "to win to nil") {
       searchMarketID = match.marketIDs.filter((market) => market.market.toLowerCase() === "to win to nil" || market.market.toLowerCase() === "clean sheet" || market.market.toLowerCase() === "win market" ).map((market) => market.marketId).join(",")
-      console.log(searchMarketID)
+      // console.log(searchMarketID)
     } 
     
 
@@ -1925,14 +1935,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       (marketToLoad) => marketToLoad.marketId === marketID
     );
     if (marketIndex === -1) {
-      console.log("new")
+      console.log("new market opened")
       setLoadedMatches((prevLoadedMatch) => [...prevLoadedMatch,marketID]);
       // console.log(marketID)
       fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=" + searchMarketID + "&repub=OC")
       .then((response) => response.json())
       .then((data) => {
         data = simplifyData(data)
-        console.log(data)
+        console.log("oddschecker data: ", data)
         
         // data.push({
         //   "marketId": 123,
@@ -2100,7 +2110,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
               
                 setLoadingMatch((prev) => ({ ...prev, [marketID]: false }));
                 flag = false
-                console.log(flag)
+                // console.log(flag)
                 // console.log(removeMarketById(filteredGroupedMatches, data[i].marketId))
                 // setFilteredGroupedMatches(removeMarketById(filteredGroupedMatches, data[i].marketId))
                 break
@@ -2111,7 +2121,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
           if (flag) {
             // Normalisation 
             const normalizedData = normalizeData(data,marketName);
-            console.log(normalizedData);
+            console.log("normalized data: ", normalizedData);
             setMarkets((prevMarkets) => [...prevMarkets, ...normalizedData]);
             setPendingOpen(marketID)
           } 
@@ -2180,14 +2190,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       });
         
     } else if(marketIndex !== -1 && now - markets[marketIndex].timestamp > 10 * 60 * 1000) {
-      console.log("new update")
+      console.log("new update for oddschecker data")
       setLoadedMatches((prevLoadedMatch) => [...prevLoadedMatch,marketID]);
       // console.log(marketID)
       fetch("https://www.oddschecker.com/api/markets/v2/all-odds?market-ids=" + searchMarketID + "&repub=OC")
       .then((response) => response.json())
       .then((data) => {
         data = simplifyData(data)
-        console.log(data)
+        console.log("oddschecker data: ",data)
         
         // data.push({
         //   "marketId": 3577872887,
@@ -2227,7 +2237,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         } else {
           // Normalisation 
           const normalizedData = normalizeData(data,marketName);
-          console.log(normalizedData);
+          console.log("normalized data: ", normalizedData);
 
 
           const updateMarkets = (data) => {
@@ -2360,12 +2370,15 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       });
       setLoadingMatch((prev) => ({ ...prev, [marketID]: false }));
     } 
+    setTimeout(() => {
+      setLockedMarkets(prev => ({ ...prev, [marketID]: false }));
+    }, 400);
     
   }
   useEffect(() => {
     if (!pendingOpen) return;
-    console.log(markets)
-    console.log(filteredGroupedMatches)
+    console.log("markets:", markets)
+    console.log("filtered grouped matches: ", filteredGroupedMatches)
     setOpen((prev) => {
       const newState = {};
       Object.keys(prev).forEach((key) => {
@@ -2618,6 +2631,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                       aria-controls={`collapse-${market.marketId}`}
                                       aria-expanded={open[market.marketId] || false}
                                       className='drop d-flex justify-content-between align-items-center'
+                                      disabled={lockedMarkets[market.marketId] === true}
                                     >
                                       <div>{market.market}</div>
                                       <div>

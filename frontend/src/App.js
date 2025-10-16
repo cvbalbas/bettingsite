@@ -104,9 +104,9 @@ function App() {
         });
   
         const data = await response.json();
-        console.log(data)
+        // console.log(data)
         setWalletBalance(data.user?.wallet_balance || 0);
-        console.log(data.user?.wallet_balance)
+        // console.log(data.user?.wallet_balance)
         localStorage.setItem('walletBalance', (data.user?.wallet_balance || 0));
         setRole(data.user?.admin ?? false); // Ensure role is always set
         setIsPremium({
@@ -152,7 +152,7 @@ function App() {
         setPhoneSetUp(false)
       }
     }
-    console.log(user)
+    // console.log(user)
   }, [registeredPhone, user, loading])
 
 

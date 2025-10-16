@@ -24,10 +24,10 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
   };
 
   useEffect(() => {
-    console.log(selectedOdds)
-    console.log(estimatedPayouts)
-    console.log(betAmounts)
-    console.log(invalidMatches)
+    // console.log(selectedOdds)
+    // console.log(estimatedPayouts)
+    // console.log(betAmounts)
+    // console.log(invalidMatches)
   },[selectedOdds,betAmounts,estimatedPayouts,invalidMatches])
 
   const removeBet = (bet) => {
@@ -56,14 +56,14 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
       } else {
         setUser(currentUser);
         saveBets()
-        console.log(currentUser)
+        // console.log(currentUser)
       }
     });
 
     return () => unsubscribe(); 
   }
   const saveBets = async () => {
-    console.log(user)
+    // console.log(user)
     
     try {
       const nowUnix = Math.floor(Date.now() / 1000); // current time in seconds
