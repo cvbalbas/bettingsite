@@ -104,6 +104,15 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
       }));
   };
   const submitMarketResults = async (match_day, time, fixture, bet_market) => {
+    // Check if already saved or currently saving
+    const isAlreadySaving =
+      savedMarkets?.[match_day]?.[fixture]?.[bet_market];
+
+    if (isAlreadySaving) {
+      console.log("Already saving this market, ignoring duplicate click.");
+      return; // Ignore further clicks
+    }
+
     // Immediately disable the button to prevent multiple clicks
     setSavedMarkets((prev) => ({
       ...prev,
@@ -111,12 +120,14 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
         ...(prev[match_day] || {}),
         [fixture]: {
           ...(prev[match_day]?.[fixture] || {}),
-          [bet_market]: true, // temporarily mark as saved
+          [bet_market]: true, // temporarily mark as saving
         },
       },
     }));
+
     try {
-      await saveMarketResults(match_day, time, fixture, bet_market); 
+      await saveMarketResults(match_day, time, fixture, bet_market);
+      // Keep it marked as saved (success)
     } catch (error) {
       console.error("Error saving market results:", error);
       // Revert the saved flag if the request fails
