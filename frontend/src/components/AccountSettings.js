@@ -9,7 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
 
-export default function AccountSettings({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, openPremiumModal, closePremiumModal, openAddCoinsModal, closeAddCoinsModal, coinsToAdd}) {
+export default function AccountSettings({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, openPremiumModal, closePremiumModal, openAddCoinsModal, closeAddCoinsModal, coinsToAdd, usernameInfo}) {
   const [transactions, setTransactions] = useState([]);
   const [reset, setReset] = useState(false)
   const [switcher, setSwitcher] = useState('account');
@@ -214,7 +214,23 @@ function filterBets(betHistory){
         {switcher === 'account' ? ( 
           <>
           <div className='col-12 col-xxl-5 matchMarginAccount my-2'>
-          <div className="row g-3 align-items-center mb-3 d-flex">
+          <div className="row g-3 align-items-center d-flex">
+            <div className="col-4">
+              <label htmlFor="usernameContainer" className="col-form-label text-grey text-uppercase">Username</label>
+            </div>
+            <div className="col-8">
+              <div className='col-10 col-sm-11'>
+                <input 
+                  type="text" 
+                  id="usernameContainer" 
+                  className="form-control accountInput" 
+                  value={user !== null ?  usernameInfo : ''} 
+                  disabled
+                />       
+              </div>   
+            </div>
+          </div>
+          <div className="row g-3 align-items-center d-flex mt-3">
             <div className="col-4">
               <label htmlFor="emailContainer" className="col-form-label text-grey text-uppercase">Email</label>
             </div>
@@ -253,14 +269,14 @@ function filterBets(betHistory){
               </div>    
             </div>
           </div>
-          <div className="row g-3 align-items-center mb-3">
+          <div className="row g-3 align-items-center">
             <div className='col-4'></div>
             <div className='col-8'>
               {!reset ? (<><span className='text-orange fst-italic'>&nbsp; </span></> ) :
               (<span className='text-orange fst-italic'> Check your email for the password reset link. </span>)} 
             </div>
           </div>
-          <div className="row g-3 align-items-center my-1">
+          <div className="row g-3 align-items-center mt-3">
             <div className="col-4">
               <label htmlFor="balance" className="col-form-label text-grey text-uppercase">
                 Wallet
@@ -276,7 +292,7 @@ function filterBets(betHistory){
             <div className='col-8 d-flex align-items-center justify-content-start'>
               <div className="col-10 col-sm-11 d-flex align-items-stretch justify-content-between balanceInput">
                   <div className='inputDiv'><input pattern="^\d*(\.\d{0,2})?$" className='input inputBet fw-bold' id="walletBalance" value={walletBalance} disabled/></div>
-                  <div className='currency'><img src = {currency} className='currencyImg' alt='coins'/></div>
+                  <div className='currency'><img src = {currency} className='currencyImg' alt='coins' width = {20} height={20}/></div>
               </div>
               <div className='col-2 col-sm-1 p-3 mouse-pointer addCoins'
               onClick={openAddCoinsModal}>
@@ -332,7 +348,7 @@ function filterBets(betHistory){
           </div>
 
           </div>
-          <div className='col-12 col-xxl-7 matchMarginAccount'>
+          {/* <div className='col-12 col-xxl-7 matchMarginAccount'>
             <div className='d-flex justify-content-between align-items-center'>
               <div className='col-md-4 col-6'><label className="col-form-label text-grey text-uppercase">Transaction History</label></div>
               <div className='col-md-8 col-6 key text-white text-end font-10'><span className='badge bg-success'>&nbsp;</span> Won <span className='badge bg-danger'>&nbsp;</span> Lost <br/><span className='badge bg-dark'>&nbsp;</span> Settled  <span className='badge bg-secondary'>&nbsp;</span> Pending </div>
@@ -411,12 +427,12 @@ function filterBets(betHistory){
                   <p className='text-white'><em>Empty...</em> <br/>
                       <strong>Start Betting!</strong>
                   </p>
-                  <img src = {empty} height="150px" alt='Empty...' />
+                  <img src = {empty} alt='Empty...' width = {160} height={150}/>
                 </div>
                 </>
               )}
             </div>
-          </div>
+          </div> */}
           </>
         ) : (
           <>
@@ -505,7 +521,7 @@ function filterBets(betHistory){
                     <tr key={bet.transaction_id}>
                       <td>{new Date(bet.placed_at).toLocaleDateString()} <br />{new Date(bet.settled_at).toLocaleDateString()}</td>
                       <td className={`${bet.status === 'lost' ? 'text-red fw-bold' : ''}`}>{bet.bet_amount}</td>
-                      <td className={`${bet.status === 'won' ? 'text-green fw-bold' : ''}`}>{bet.potential_payout}</td>
+                      <td className={`${bet.status === 'won' ? 'text-green fw-bold' : ''}`}>{`${bet.status === 'lost' ? '0.00' : bet.potential_payout}`}</td>
                       <td>
                         <span className='fst-italic'> {bet.fixture}</span> <br />
                         <span className='fst-italic '>{bet["bet_market"]}</span> <br />
@@ -550,7 +566,7 @@ function filterBets(betHistory){
                 <p className='text-white'><em>Empty...</em> <br/>
                     <strong>Start Betting!</strong>
                 </p>
-                <img src = {empty} height="200px" alt='Empty...' />
+                <img src = {empty} alt='Empty...' width = {214} height={200} />
               </div>
               </>
               )}

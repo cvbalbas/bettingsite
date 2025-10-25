@@ -166,7 +166,10 @@ app.get("/api/oddschecker", async (req, res) => {
 //Save bets into bets_list and bets_wallet_transactions and update wallet_balance
 app.post('/api/save-odds', async (req, res) => {
   const { selectedOdds, betAmounts } = req.body;
+  const totalBetAmounts = Object.values(betAmounts)
+  .reduce((sum, bet) => sum + (parseFloat(bet) || 0), 0);
 
+  
   try {
     const token = req.headers.authorization?.split("Bearer ")[1];
     if (!token) return res.status(401).json({ error: "Unauthorized" });
@@ -193,6 +196,18 @@ app.post('/api/save-odds', async (req, res) => {
         return res.status(400).json({ error: "User UID does not exist" });
       }
 
+      const walletBalance = parseFloat(userRows[0].wallet_balance || 0);
+      // Check if total bet exceeds wallet balance
+      if (totalBetAmounts > walletBalance) {
+        await connection.rollback();
+        connection.release();
+        return res.status(400).json({
+          error: "Insufficient balance",
+          message: `Total bet amount (${totalBetAmounts}) exceeds wallet balance (${walletBalance}).`
+        });
+      }
+      
+      // --- Continue if balance is sufficient ---
       const sqlInsertBet = `
         INSERT INTO bets_list (
           uid, bet_amount, potential_payout, event_id, fixture, match_date,
@@ -271,6 +286,21 @@ app.post('/api/save-odds', async (req, res) => {
   }
 });
 
+//Check username availability
+app.post("/api/check-username", async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    const [rows] = await executeQuery("SELECT COUNT(*) AS count FROM betsusers WHERE username = ?", [username]);
+    console.log(rows)
+    res.json({ exists: rows.count > 0 });
+  } catch (error) {
+    console.error("Error checking username:", error);
+    res.status(500).json({ error: "Server error checking username" });
+  }
+});
+
+
 
 //Get current user's wallet_balance, role
 app.post('/api/user-info', async (req, res) => {
@@ -308,7 +338,7 @@ app.post('/api/user-info', async (req, res) => {
 
 //Save new User to DB
 app.post('/api/save-user', async (req, res) => {
-  const { currentUser, phoneNumber } = req.body;
+  const { currentUser, phoneNumber, username} = req.body;
 
   if (!currentUser?.uid || !currentUser?.email || !phoneNumber) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -351,9 +381,9 @@ app.post('/api/save-user', async (req, res) => {
     } else {
       // Insert new user
       await executeQuery(
-        `INSERT INTO betsusers (uid, email, hashed_phone, wallet_balance, created_at) 
+        `INSERT INTO betsusers (uid,  username, hashed_phone, wallet_balance, created_at) 
          VALUES (?, ?, ?, ?, NOW())`,
-        [currentUser.uid, currentUser.email, hashedPhone, 100]
+        [currentUser.uid, username, hashedPhone, 100]
       );
       await executeQuery('COMMIT');
       return res.status(201).json({ message: 'User added successfully with initial balance' });

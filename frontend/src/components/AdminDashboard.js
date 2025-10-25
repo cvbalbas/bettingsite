@@ -104,20 +104,32 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
       }));
   };
   const submitMarketResults = async (match_day, time, fixture, bet_market) => {
+    // Immediately disable the button to prevent multiple clicks
+    setSavedMarkets((prev) => ({
+      ...prev,
+      [match_day]: {
+        ...(prev[match_day] || {}),
+        [fixture]: {
+          ...(prev[match_day]?.[fixture] || {}),
+          [bet_market]: true, // temporarily mark as saved
+        },
+      },
+    }));
     try {
       await saveMarketResults(match_day, time, fixture, bet_market); 
+    } catch (error) {
+      console.error("Error saving market results:", error);
+      // Revert the saved flag if the request fails
       setSavedMarkets((prev) => ({
         ...prev,
         [match_day]: {
           ...(prev[match_day] || {}),
           [fixture]: {
             ...(prev[match_day]?.[fixture] || {}),
-            [bet_market]: true, 
-          }
-        }
+            [bet_market]: false,
+          },
+        },
       }));
-    } catch (error) {
-      console.error("Error saving market results:", error);
     }
   };
 

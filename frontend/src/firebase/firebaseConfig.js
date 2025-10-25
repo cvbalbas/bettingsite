@@ -21,4 +21,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 auth.useDeviceLanguage(); // Automatically sets the language
 
+// Secondary app (for phone OTP only)
+const secondaryApp = initializeApp(firebaseConfig, "OTP_APP");
+export const otpAuth = getAuth(secondaryApp);
+
 export { auth, RecaptchaVerifier };

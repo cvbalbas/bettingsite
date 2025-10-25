@@ -4,9 +4,8 @@ import empty from "../images/Empty.png"
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 
 
-export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, setShowAlert, setAlertText, setAnimationClass, setUser, percentOdds}) {
+export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSidebar, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, openSignupModal, handleClearAllBets, user, setWalletBalance, walletBalance, setShowAlert, setAlertText, setAnimationClass, setUser, percentOdds, invalidMatches, setInvalidMatches}) {
 
-  const [invalidMatches, setInvalidMatches] = useState([]);
 
   const handleBetAmountChange = (bet, value) => {
    
@@ -24,10 +23,10 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
   };
 
   useEffect(() => {
-    // console.log(selectedOdds)
-    // console.log(estimatedPayouts)
-    // console.log(betAmounts)
-    // console.log(invalidMatches)
+    console.log("Selected odds", selectedOdds)
+    console.log("Estimated Payouts", estimatedPayouts)
+    console.log("Bet Amounts", betAmounts)
+    console.log("Invalid Matches", invalidMatches)
   },[selectedOdds,betAmounts,estimatedPayouts,invalidMatches])
 
   const removeBet = (bet) => {
@@ -63,98 +62,98 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
     return () => unsubscribe(); 
   }
   const saveBets = async () => {
-    // console.log(user)
-    
     try {
-      const nowUnix = Math.floor(Date.now() / 1000); // current time in seconds
+      const nowUnix = Math.floor(Date.now() / 1000);
 
-      // Check for passed matches
-      const passedMatches = selectedOdds.filter(match => match.timestamp <= nowUnix).map(match => match.id);;
-      setInvalidMatches(passedMatches)
+      // Find matches that have already started/passed
+      const passedMatches = selectedOdds
+        .filter(match => match.timestamp <= nowUnix)
+        .map(match => `${match.id}$${match.selectedMarket}$${match.selectedType}`);
+
+      // Find bets with 0 amount
+      const zeroBets = Object.entries(betAmounts)
+        .filter(([key, value]) => Number(value) === 0)
+        .map(([key]) => key);
+
+      // Find selected matches that don’t have betAmounts or payouts
+      const noBets = selectedOdds
+        .map(bet => `${bet.id}$${bet.selectedMarket}$${bet.selectedType}`)
+        .filter(key => !(key in betAmounts && key in estimatedPayouts));
+
+      // Mark invalid matches
+      setInvalidMatches([...passedMatches, ...zeroBets, ...noBets]);
+
+      // --- Validation alerts ---
       if (passedMatches.length > 0) {
-        // Throw an error or show alert if any matches have passed
-        setAlertText('<strong>Error:</strong> One or more selected matches have already passed.');
-        setAnimationClass('alert-fade-in');
-        setShowAlert(true);
-
-        const fadeOutTimeout = setTimeout(() => {
-          setAnimationClass('alert-fade-out');
-        }, 1000);
-
-        const clearAlertTimeout = setTimeout(() => {
-          setShowAlert(false);
-          setAnimationClass('');
-        }, 1500);
-
-        return () => {
-          clearTimeout(fadeOutTimeout);
-          clearTimeout(clearAlertTimeout);
-        };
+        showTempAlert('<strong>Error:</strong> One or more selected matches have already passed.');
+        return;
       }
 
-      // If all matches are valid, continue saving
-      const token = await user.getIdToken(); 
+      if (zeroBets.length > 0 || selectedOdds.length !== Object.keys(betAmounts).length) {
+        showTempAlert('<strong>Error:</strong> At least one selected match has a bet amount of 0 coins.');
+        return;
+      }
+
+      // --- Proceed with saving bets ---
+      const token = await user.getIdToken();
 
       const response = await fetch('/api/save-odds', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           selectedOdds,
           betAmounts,
           user,
-        })
+        }),
       });
 
       const data = await response.json();
-      console.log('Odds saved successfully:', data);
 
-      setWalletBalance(data["wallet_balance"]);
+      // --- Handle server errors ---
+      if (!response.ok) {
+        if (data.error === 'Insufficient balance') {
+          showTempAlert('<strong>Error:</strong> Insufficient balance.');
+        } else {
+          showTempAlert('<strong>Error:</strong> Failed to save your bets. Try again later.');
+        }
+        return;
+      }
+
+      // --- Success ---
+      console.log('Odds saved successfully:', data);
+      setWalletBalance(data.wallet_balance);
       closeSidebar();
       handleClearAllBets();
+      setInvalidMatches([]);
 
-      setAlertText('<strong>Successfully placed bets! </strong>');
-      setAnimationClass('alert-fade-in');
-      setShowAlert(true);
-
-      const fadeOutTimeout = setTimeout(() => {
-        setAnimationClass('alert-fade-out');
-      }, 2000);
-
-      const clearAlertTimeout = setTimeout(() => {
-        setShowAlert(false);
-        setAnimationClass('');
-      }, 2500);
-
-      return () => {
-        clearTimeout(fadeOutTimeout);
-        clearTimeout(clearAlertTimeout);
-      };
-
+      showTempAlert('<strong>Successfully placed bets!</strong>');
     } catch (error) {
       console.error('Error saving odds:', error);
-      setAlertText('<strong>Error:</strong> Failed to save bets.');
-      setAnimationClass('alert-fade-in');
-      setShowAlert(true);
-
-      const fadeOutTimeout = setTimeout(() => {
-        setAnimationClass('alert-fade-out');
-      }, 2000);
-
-      const clearAlertTimeout = setTimeout(() => {
-        setShowAlert(false);
-        setAnimationClass('');
-      }, 2500);
+      showTempAlert('<strong>Error:</strong> Failed to save your bets. Try again later.');
     }
   };
+  const showTempAlert = (htmlText) => {
+    setAlertText(htmlText);
+    setAnimationClass('alert-fade-in');
+    setShowAlert(true);
 
-   const totalEstimatedPayout = Object.values(estimatedPayouts)
-   .reduce((sum, payout) => sum + parseFloat(payout), 0); 
-    
-    const totalBetAmounts = Object.values(betAmounts)
-    .reduce((sum, bet) => sum + parseFloat(bet), 0); 
+    setTimeout(() => setAnimationClass('alert-fade-out'), 2000);
+    setTimeout(() => {
+      setShowAlert(false);
+      setAnimationClass('');
+    }, 2500);
+  };
+
+
+
+  const totalEstimatedPayout = Object.values(estimatedPayouts)
+  .reduce((sum, payout) => sum + parseFloat(payout), 0); 
+  
+  const totalBetAmounts = Object.values(betAmounts)
+  .reduce((sum, bet) => sum + (parseFloat(bet) || 0), 0);
 
   return (
     <div className = 'd-flex justify-content-end bets-float shadow-left'>
@@ -173,10 +172,14 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                 </div>
             </div>
             <div className='bets-list'>
-              <div className='text-end text-grey pt-3 pb-2 px-4 font-12 mouse-pointer' onClick={handleClearAllBets}>Clear all</div>
+              <div className='text-end text-grey pt-3 pb-2 px-4 font-12 mouse-pointer' 
+              onClick={ () => {
+                handleClearAllBets(); 
+                setInvalidMatches([])
+              }}>Clear all</div>
               {selectedOdds.length > 0 ? (
                 selectedOdds.map((bet, index) => {
-                  const isInvalid = invalidMatches.includes(bet.id); // check if this bet is invalid
+                  const isInvalid = invalidMatches.includes(`${bet.id}$${bet.selectedMarket}$${bet.selectedType}`); // check if this bet is invalid
                   return (
                     <div
                       key={index}
@@ -207,7 +210,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                             />
                           </div>
                           <div className='currency'>
-                            <img src={currency} className='currencyImg' alt='coins'/>
+                            <img src={currency} className='currencyImg' alt='coins' width = {20} height = {20}/>
                           </div>
                         </div>
 
@@ -218,7 +221,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                               {estimatedPayouts[`${bet.id}$${bet.selectedMarket}$${bet.selectedType}`] || '0.00'}
                             </div>
                             <div>
-                              <img src={currency} className='currencyImg' alt='coins'/>
+                              <img src={currency} className='currencyImg' alt='coins' width = {20} height = {20}/>
                             </div>
                           </div>
                         </div>
@@ -229,7 +232,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
                 })
               ) : (
                 <div className='text-center mt-5'>
-                  <img src={empty} className='empty' alt='Empty...' />
+                  <img src={empty} className='empty' alt='Empty...' width = {225} height={209}/>
                   <p className='text-white'><em>Empty...</em> <br/>
                     <strong>Start Betting!</strong>
                   </p>
@@ -238,16 +241,25 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
 
             </div>
             <div className='totalBets'>
-                <div className='d-flex justify-content-between align-items-center px-4 pt-4 pb-2' >
-                    <div className='font-15 text-white fw-bold d-flex justify-content-end align-items-center'><div className='pt-1'>{totalBetAmounts.toFixed(2)} </div><div><img src = {currency} className='currencyImg' alt='coins' /></div></div>
+                <div className='d-flex justify-content-between align-items-center  pt-4 pb-2' >
+                  <div className={`w-100 px-4 py-1 d-flex justify-content-between  align-items-center ${totalBetAmounts > walletBalance ? 'total-error' : ''}`}>
+                    <div className= 'font-15 text-white fw-bold d-flex justify-content-end align-items-center'>
+                      <div className='pt-1'>{totalBetAmounts.toFixed(2)} </div>
+                      <div><img src = {currency} className='currencyImg' alt='coins' width = {20} height = {20}/></div>
+                    </div>
                     <div className='font-15 text-lightgrey text-end'>Total Bets</div>
+                  </div>
                 </div>
                 <div className='d-flex justify-content-between align-items-center px-4' >
-                    <div className='font-15 text-orange fw-bold d-flex justify-content-end align-items-center'><div className='pt-1'>{totalEstimatedPayout.toFixed(2)}</div><div><img src = {currency} className='currencyImg' alt='coins'/></div></div>
+                    <div className='font-15 text-orange fw-bold d-flex justify-content-end align-items-center'><div className='pt-1'>{totalEstimatedPayout.toFixed(2)}</div><div><img src = {currency} className='currencyImg' alt='coins' width = {20} height = {20}/></div></div>
                     <div className='font-15 text-orange text-end'>Est. Payout</div>
                 </div>
                 <div className='text-center px-4 py-2' >
-                    <div className='placebet mouse-pointer' onClick={checkUser}>Place Bet</div>
+                    <div className='placebet mouse-pointer' onClick={() => {
+                      if (totalBetAmounts <= walletBalance){
+                        checkUser()
+                      }
+                    }}>Place Bet</div>
                 </div>
             </div>
         </div>

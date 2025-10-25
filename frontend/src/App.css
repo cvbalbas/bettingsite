@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 .container {
   overflow-y: scroll;
   height: 80vh;
@@ -64,9 +63,12 @@ body::-webkit-scrollbar-thumb
   background-color: rgba(255,0,0,0.1);
 }
 
+.total-error {
+  background-color: rgba(255, 0, 0, 0.344);
+}
 
 .text-lightgrey {
-  color: #CACACA;
+  color: #e5e5e5;
 }
 .text-darkgrey {
   color: #282828;
@@ -311,6 +313,7 @@ input:focus {
 }
 
 .logo {
+  width: 162px;
   height: 38px;
 }
 
@@ -400,6 +403,7 @@ input:focus {
 }
 .empty {
   width: 75%;
+  height: auto;
 }
 .bets-list {
   height: calc(100vh - 240px);
@@ -492,6 +496,7 @@ input:focus {
 }
 .currencyImg {
   height: 20px;
+  width: 20px;
   margin-left: 10px;
 }
 .matchdiv {
@@ -665,7 +670,7 @@ svg:hover path {
   padding-right: 40px;
 }
 .matchMarginAccount {
-  padding-left: 40px;
+  padding-left: 55px;
   padding-right: 40px;
 }
 .changePw {
@@ -1024,7 +1029,7 @@ a slight movement of the header row */
     padding-right: 20px;
   }
   .matchMarginAccount {
-    padding-left: 40px;
+    padding-left: 55px;
     padding-right: 40px;
   }
   .changePw {
@@ -1083,7 +1088,7 @@ a slight movement of the header row */
     padding-right: 10px;
   }
   .matchMarginAccount {
-    padding-left: 40px;
+    padding-left: 55px;
     padding-right: 40px;
   }
   .changePw {
@@ -1148,6 +1153,7 @@ a slight movement of the header row */
   
   .logo {
     height: 25px;
+    width: 107px;
   }
   .me-5 {
     margin-right: 1rem !important;
@@ -1203,13 +1209,14 @@ a slight movement of the header row */
     font-size: 10px;
   }
   .currencyImg {
+    width: 15px;
     height: 15px;
   }
   .currency {
     padding: 8px;
   }
   .matchMarginAccount {
-    padding-left: 10px;
+    padding-left: 15px;
     padding-right: 10px;
   }
 }

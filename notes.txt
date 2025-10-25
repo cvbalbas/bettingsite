@@ -210,3 +210,21 @@ put a timestamp in each data element in oddschecker
 every 10 mins, check each timestamp from markets, whichever is oldest, update that.
 
 672 for some reason it's giving a past match and gives an error because there's no odds for that match anymore.
+
+
+
+
+
+
+
+
+
+and send email?
+if there's no search results, don't show "error try again later"
+remove penalty if penalty in match not complete
+make firebase tutorial
+
+fix the margin of place bet in mobile view
+
+
+check for duplicate usernames

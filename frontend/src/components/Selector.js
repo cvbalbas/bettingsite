@@ -126,6 +126,8 @@ export default function App({selectedLeague, setSelectedLeague}) {
                                 objectFit: "cover",
                                 transition: "all 0.3s ease",
                             }}
+                            width = {35} height = {35}
+                            loading="lazy"
                             />
                         </button>
                         <small className="text-light mt-1 font-10">

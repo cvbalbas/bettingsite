@@ -1,15 +1,13 @@
 // src/firebase/authMethods.js
-import { getAdditionalUserInfo, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, setPersistence, browserLocalPersistence, getAuth, 
-  RecaptchaVerifier, 
-  signInWithPhoneNumber, 
-  updatePhoneNumber, 
-  PhoneAuthProvider } from "firebase/auth";
+import { getAdditionalUserInfo, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, setPersistence, browserLocalPersistence, getAuth, RecaptchaVerifier, signInWithPhoneNumber, updatePhoneNumber,  signInWithCredential,    PhoneAuthProvider } from "firebase/auth";
+
 import { getFirestore, doc, setDoc } from "firebase/firestore"; // For Firestore
 import { getDatabase, ref, set } from "firebase/database"; // For Firebase Realtime Database
 import { auth } from "./firebaseConfig"; // Import Firebase auth instance
 import emailjs from '@emailjs/browser';
 import bcrypt from "bcryptjs"; // Import bcrypt for hashing
 
+import { otpAuth } from "./firebaseConfig";
 
 
 // Sign Up with Email and Password
@@ -128,6 +126,7 @@ export const getCurrentUser = async () => {
 };
 
 
+
 // Initialize reCAPTCHA
 export const setupRecaptcha = () => {
   if (!window.recaptchaVerifier) {
@@ -136,7 +135,7 @@ export const setupRecaptcha = () => {
       callback: () => console.log("reCAPTCHA verified"),
       "expired-callback": () => {
         console.error("reCAPTCHA expired. Please try again.");
-      }
+      },
     });
   }
 };
@@ -144,29 +143,52 @@ export const setupRecaptcha = () => {
 // Send OTP
 export const sendOTP = async (phoneNumber) => {
   try {
-    setupRecaptcha(); // Ensure reCAPTCHA is set up
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
-    return confirmationResult;
+    setupRecaptcha(); // Ensure reCAPTCHA is ready
+
+    const appVerifier = window.recaptchaVerifier;
+    const confirmationResult = await signInWithPhoneNumber(
+      otpAuth,
+      phoneNumber,
+      appVerifier
+    );
+
+    // Save confirmationResult temporarily (for later verification)
+    window.confirmationResult = confirmationResult;
+
+    console.log("OTP sent successfully");
+    return true;
   } catch (error) {
     console.error("Error sending OTP:", error);
     throw error;
   }
 };
 
-// Verify OTP and link phone number to user account
-export const verifyOTP = async (confirmationResult, otp, user) => {
+// Verify OTP (without signing in the user)
+export const verifyOTP = async (otp) => {
   try {
-    const credential = PhoneAuthProvider.credential(confirmationResult.verificationId, otp);
-    // await updatePhoneNumber(user, credential); // Link phone to user account
-    // console.log("Phone number linked successfully!");
-
-    if (credential) {
-      // console.log("OTP Verified");
+    if (!window.confirmationResult) {
+      throw new Error("No OTP session found. Please request a new code.");
     }
 
+    // This confirms the OTP with Firebase
+    const result = await window.confirmationResult.confirm(otp);
+    const tempUser = result.user;
+
+    // Immediately delete that temporary Firebase user
+    await tempUser.delete();
+    await otpAuth.signOut();
+
+    console.log("OTP verified successfully");
     return true;
   } catch (error) {
     console.error("Error verifying OTP:", error);
-    throw error;
+    throw error
+    // if (error.code === "auth/invalid-verification-code") {
+    //   throw new Error("Invalid OTP. Please try again.");
+    // } else if (error.code === "auth/code-expired") {
+    //   throw new Error("OTP expired. Please resend.");
+    // } else {
+    //   throw new Error("Failed to verify OTP. Try again later.");
+    // }
   }
 };

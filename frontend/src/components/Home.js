@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 
 
 import { Button, Collapse } from 'react-bootstrap';
@@ -7,7 +7,7 @@ import ToggleSwitch from "./ToggleSwitch";
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 
 
-function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, selectedOdds, setSelectedOdds, betsOpen, setBetsOpen, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, handleClearAllBets, openPremiumModal, closePremiumModal, showAlert, setShowAlert, alertText, setAlertText, animationClass, setAnimationClass, setPhoneSetUp, setRole, openSignupModal, setLoading, selectedLeague, setSelectedLeague, percentOdds, setPercentOdds}) {
+function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, selectedOdds, setSelectedOdds, betsOpen, setBetsOpen, betAmounts, setBetAmounts, estimatedPayouts, setEstimatedPayouts, handleClearAllBets, openPremiumModal, closePremiumModal, showAlert, setShowAlert, alertText, setAlertText, animationClass, setAnimationClass, setPhoneSetUp, setRole, openSignupModal, setLoading, selectedLeague, setSelectedLeague, percentOdds, setPercentOdds,  invalidMatches, setInvalidMatches}) {
 
   const [matches, setMatches] = useState([]);
   const [markets, setMarkets] = useState([]);
@@ -16,6 +16,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   const [loadedMatches, setLoadedMatches] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [fetchError, setFetchError] = useState(false); 
+  const [oddsApiError, setOddsApiError] = useState(false)
+
 
   const [open, setOpen] = useState({}); 
   const [openMarkets, setOpenMarkets] = useState({}); 
@@ -24,6 +26,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   const [showAll, setShowAll] = useState({});
   const [notif, setNotif] = useState([])
   const [filteredGroupedMatches, setFilteredGroupedMatches] = useState({});
+  const [lastFetched, setLastFetched] = useState({});
 
 
 
@@ -72,101 +75,208 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
   }, [isPremium, user, markets, matches, loadedMatches, open, searchMarket, filteredGroupedMatches])
 
   
+  // useEffect(() => {
+  //   const fetchOdds = async (league) => {
+      
+  //     try {
+  //       const response = await fetch(`/api/odds?league=${league.key}`); 
+  //       const data = await response.json();
+  //       // console.log("update")
+  //       // console.log(data.data)
+  //       // data.data[0]["home_team"] = "Sunderland"
+  //       // data.data[0]["teams"][0] = "Aston Villa"
+  //       // data.data[0]["teams"][1] = "Sunderland"
+  //       // Filter out duplicates (by id)
+  //       if (!response.ok) {
+  //         setOddsApiError(true)
+  //         console.error('Error fetching odds: the-odds-api not working');
+  //       } else {
+  //         setMatches((prevMatches) => {
+  //           const updatedMatches = [...prevMatches];
+
+  //           data.data.forEach((newMatch) => {
+  //             const index = updatedMatches.findIndex((m) => m.id === newMatch.id);
+  //             if (index !== -1) {
+  //               // Replace existing match
+  //               updatedMatches[index] = newMatch;
+  //             } else {
+  //               // Add new match
+  //               updatedMatches.push(newMatch);
+  //             }
+  //           });
+
+  //           return updatedMatches;
+  //         });
+  //       }
+  //     } catch (error) {
+  //       setOddsApiError(true)
+  //       console.error('Error fetching odds:', error);
+        
+  //     }
+  //   };
+    
+  //   const fetchMarkets = async () => {
+  //     try {
+  //       const response = await fetch('/api/markets'); 
+  //       const data = await response.json();
+  //       data.forEach((market) => {
+  //         market.time = formatDate(market.time) + " at " + formatTime(market.time)
+  //       })
+  //       // data.push({
+  //       //   fixture: "brentford-v-man-utd",
+  //       //   id:11051,
+  //       //   market:"Total Goals 3-Way",
+  //       //   marketId:3568610045,
+  //       //   time:"21 October 2024 at 20:00",
+  //       //   sport_key: "soccer_epl"
+  //       // })
+  //       // console.log(data)
+  //       setMarketIDs(data); 
+        
+  //     } catch (error) {
+  //       console.error('Error fetching markets:', error);
+  //     }
+  //   }
+    
+
+  //   // Run only if a league is selected
+  //   if (selectedLeague) {
+  //     const alreadyLoaded = matches.some(m => m.sport_key === selectedLeague.key);
+  //     if (!alreadyLoaded) {
+  //       fetchOdds(selectedLeague);
+  //     }
+  //   }
+  //   setLoadingHome(true)
+  //   fetchMarkets();
+
+  //   // setTimeout(function() {
+  //   //   setLoadingHome(false)
+  //   // }, 500);
+    
+    
+
+
+  //   // refresh all odds every 10 minutes
+  //   const intervalId = setInterval(() => {
+  //     if (selectedLeague) {
+  //       // setLoadingHome(true)
+  //       fetchOdds(selectedLeague);
+        
+  //       // setTimeout(function() {
+  //       //   setLoadingHome(false)
+  //       // }, 500);      
+  //     }
+  //   }, 600000);
+
+  //   return () => clearInterval(intervalId);
+    
+  // }, [selectedLeague]);
+
+
   useEffect(() => {
     const fetchOdds = async (league) => {
-      
+      console.log("New odds for:", league)
       try {
-        const response = await fetch(`/api/odds?league=${league.key}`); 
+        const response = await fetch(`/api/odds?league=${league.key}`);
         const data = await response.json();
-        // console.log("update")
-        // console.log(data.data)
-        // data.data[0]["home_team"] = "Sunderland"
-        // data.data[0]["teams"][0] = "Aston Villa"
-        // data.data[0]["teams"][1] = "Sunderland"
-        // Filter out duplicates (by id)
+
+        if (!response.ok) {
+          setOddsApiError(true);
+          console.error('Error fetching odds: the-odds-api not working');
+          return;
+        }
+
         setMatches((prevMatches) => {
           const updatedMatches = [...prevMatches];
-
           data.data.forEach((newMatch) => {
             const index = updatedMatches.findIndex((m) => m.id === newMatch.id);
             if (index !== -1) {
-              // Replace existing match
               updatedMatches[index] = newMatch;
             } else {
-              // Add new match
               updatedMatches.push(newMatch);
             }
           });
-
           return updatedMatches;
         });
+
+        // update lastFetched state for this league
+        setLastFetched((prev) => ({
+          ...prev,
+          [league.key]: Date.now(),
+        }));
+
       } catch (error) {
+        setOddsApiError(true);
         console.error('Error fetching odds:', error);
-        
       }
     };
-    
+
     const fetchMarkets = async () => {
       try {
-        const response = await fetch('/api/markets'); 
+        const response = await fetch('/api/markets');
         const data = await response.json();
         data.forEach((market) => {
-          market.time = formatDate(market.time) + " at " + formatTime(market.time)
-        })
-        // data.push({
-        //   fixture: "brentford-v-man-utd",
-        //   id:11051,
-        //   market:"Total Goals 3-Way",
-        //   marketId:3568610045,
-        //   time:"21 October 2024 at 20:00",
-        //   sport_key: "soccer_epl"
-        // })
-        // console.log(data)
-        setMarketIDs(data); 
-        
+          market.time = `${formatDate(market.time)} at ${formatTime(market.time)}`;
+        });
+        setMarketIDs(data);
       } catch (error) {
         console.error('Error fetching markets:', error);
       }
-    }
-    
+    };
 
-    // Run only if a league is selected
+    const refreshOdds = () => {
+      
+      const now = Date.now();
+      const TEN_MINUTES = 10 * 60 * 1000;
+
+      Object.entries(lastFetched).forEach(([leagueKey, lastTime]) => {
+        if (now - lastTime >= TEN_MINUTES) {
+          console.log("refresh", leagueKey)
+          fetchOdds({ key: leagueKey });
+        }
+      });
+    };
+
     if (selectedLeague) {
-      const alreadyLoaded = matches.some(m => m.sport_key === selectedLeague.key);
-      if (!alreadyLoaded) {
+      const lastTime = lastFetched[selectedLeague.key];
+      const TEN_MINUTES = 10 * 60 * 1000;
+      const alreadyLoaded = matches.some((m) => m.sport_key === selectedLeague.key);
+
+      if (!alreadyLoaded || !lastTime || Date.now() - lastTime >= TEN_MINUTES) {
         fetchOdds(selectedLeague);
       }
     }
-    setLoadingHome(true)
+
+    setLoadingHome(true);
     fetchMarkets();
 
-    setTimeout(function() {
-      setLoadingHome(false)
-    }, 500);
-    
-    
+    refreshOdds();
 
-
-    // refresh all odds every 10 minutes
-    const intervalId = setInterval(() => {
-      if (selectedLeague) {
-        // setLoadingHome(true)
-        fetchOdds(selectedLeague);
-        
-        // setTimeout(function() {
-        //   setLoadingHome(false)
-        // }, 500);      
-      }
-    }, 600000);
-
+    const intervalId = setInterval(refreshOdds, 600000);
     return () => clearInterval(intervalId);
-    
-  }, [selectedLeague]);
+  }, [selectedLeague, lastFetched]);
 
+  const normalizeTeamName = (teamName) => {
+    // Convert to normalized Unicode form (splits letters and accents)
+    let name = teamName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    // Replace specific non-ASCII letters (case-sensitive)
+    const map = {
+      'ø': 'o', 'Ø': 'O',
+      'ğ': 'g', 'Ğ': 'G',
+      'ö': 'o', 'Ö': 'O',
+      'ç': 'c', 'Ç': 'C',
+      'ñ': 'n', 'Ñ': 'N',
+      'ü': 'u', 'Ü': 'U',
+      'ß': 'ss', // German sharp s
+    };
+
+    return name.replace(/[øØğĞöÖçÇñÑüÜß]/g, (char) => map[char] || char);
+  };
 
 
   const getImagePath = (teamName) => {
-    const formattedName = teamName.replace('ø','o').replace('ğ','g').replace('é', 'e').replace('ö','o').replace('-','_').replace('/','_').replace('. ', '_').replace(/ /g, '_'); 
+    const formattedName = normalizeTeamName(teamName).replace('-','_').replace('/','_').replace('. ', '_').replace(/ /g, '_'); 
     // console.log(formattedName)
     return `/images/${formattedName}.png`; 
   };
@@ -822,23 +932,31 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
 
   useEffect(() => {
-    const groupedMatches = groupMatchesByDate(matches);
+    setLoadingHome(true)
+    if (marketIDs.length > 0) {   
+      const groupedMatches = groupMatchesByDate(matches);
+      
+      const newFiltered = Object.keys(groupedMatches).reduce((acc, date) => {
+        const filteredMatches = groupedMatches[date].filter(
+          (match) =>
+            normalizeTeamName(match.homeTeam).toLowerCase().includes(searchTerm.toLowerCase()) ||
+            normalizeTeamName(match.awayTeam).toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-    const newFiltered = Object.keys(groupedMatches).reduce((acc, date) => {
-      const filteredMatches = groupedMatches[date].filter(
-        (match) =>
-          match.homeTeam.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          match.awayTeam.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+        if (filteredMatches.length > 0) {
+          acc[date] = filteredMatches;
+        }
+        return acc;
+      }, {});
 
-      if (filteredMatches.length > 0) {
-        acc[date] = filteredMatches;
-      }
-      return acc;
-    }, {});
-    console.log("filtered grouped matches: ", newFiltered)
-    setFilteredGroupedMatches(newFiltered);
-  }, [matches, searchTerm]);
+      console.log("filtered grouped matches: ", newFiltered)
+      setFilteredGroupedMatches(newFiltered);
+      setTimeout(function() {
+        setLoadingHome(false)
+      }, 500);    
+    }
+    
+  }, [matches, searchTerm, marketIDs]);
   
  
   const handleOddsClick = (matchId, type, odds, market, match) => {
@@ -846,7 +964,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
     const nowUnix = Math.floor(Date.now() / 1000); // current time in seconds
     // Compare
     if (match.timestamp < nowUnix) {
-      setNotif(() => [match.fixture + '$' + market + '$' +  type + '$' + 'danger'])
+      setNotif(() => [`${match.fixture}$${market}$${type}$danger`])
     } else {
       if(selectedOdds.length === 0) {
         setBetsOpen(true);
@@ -866,14 +984,38 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         (odd) => odd.id === matchId && odd.selectedMarket === market && odd.selectedType === type
       );
 
+      const key = `${selectedMatchInfo.id}$${selectedMatchInfo.selectedMarket}$${selectedMatchInfo.selectedType}`;
+
+
       if (matchIndex === -1) {
         
         setSelectedOdds((prevSelectedOdds) => [...prevSelectedOdds, selectedMatchInfo]);
-        setNotif(() => [match.fixture + '$' + market + '$' +  type+ '$' + 'success'])
+        // setBetAmounts(prevBetAmounts => ({
+        //   ...prevBetAmounts,
+        //   [key]: '0.00' 
+        // }));
+        // setEstimatedPayouts((prevPayouts) => ({
+        //     ...prevPayouts,
+        //     [key]: '0.00',
+        // }));
+        setNotif(() => [`${match.fixture}$${market}$${type}$success`])
 
       } else {
         setSelectedOdds((prevSelectedOdds) =>
           prevSelectedOdds.filter((_, i) => i !== matchIndex)
+        );
+        setBetAmounts((prevAmounts) => {
+          const { [key]: _, ...newAmounts } = prevAmounts;
+          return newAmounts;
+        });
+
+        setEstimatedPayouts((prevPayouts) => {
+          const { [key]: _, ...newPayouts } = prevPayouts;
+          return newPayouts;
+        });
+
+        setInvalidMatches(prevMatches => 
+          prevMatches.filter(matchKey => matchKey !== key)
         );
       }
     }
@@ -1326,51 +1468,6 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         });
     });
 
-    // cloned.forEach(market => {
-    //   const type = market.marketTypeName.toLowerCase();
-    //   const selections = allSelections.filter(
-    //     s => s.marketTypeName.toLowerCase() === type
-    //   );
-
-      
-
-    //   if (type.includes("first goalscorer") || type.includes("last goalscorer")) {
-    //     normalized = goalscorerNormalization(selections);
-
-    //   } else if (
-    //     type.includes("anytime goalscorer") ||
-    //     type.includes("hat-trick") ||
-    //     type.includes("score 2 or more")
-    //   ) {
-    //     normalized = anytimeGoalscorerNormalization(selections);
-
-    //   } else if (type.includes("double chance")) {
-    //     normalized = normalizeDoubleChance(selections);
-
-    //   } else if (type.includes("correct score")) {
-    //     normalized = selections.map(p => ({
-    //       name: p.name,
-    //       fairOdds: p.odds
-    //     }));
-
-    //   } else if (type.includes("to miss a penalty") || type.includes("to score a penalty")) {
-
-       
-
-    //   } else {
-    //     normalized = standardNormalization(selections);
-    //   }
-
-    //   // Update market bets
-    //   market.bets = market.bets.map(b => {
-    //     const name = b.line ? `${b.betName} ${b.line}` : b.betName;
-    //     const norm = normalized.find(n => n.name === name);
-    //     return {
-    //       ...b,
-    //       bestOddsDecimal: norm ? norm.fairOdds : b.bestOddsDecimal
-    //     };
-    //   });
-    // });
     console.log("New Markets: ", cloned)
 
     return cloned;
@@ -2015,8 +2112,8 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
             return newState;
           })
           setLoadingMatch((prev) => ({ ...prev, [marketID]: false }));
-        } else if (marketName.toLowerCase() === "to score a penalty" || 
-        marketName.toLowerCase() === "to miss a penalty" && data.length !== 3){
+        } else if ((marketName.toLowerCase() === "to score a penalty" || 
+        marketName.toLowerCase() === "to miss a penalty") && data.length !== 3){
           setFetchError(true)
           setOpen((prev) => {
             const newState = {};
@@ -2504,7 +2601,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
               </div>
             </div>
             <div className='match-list'>
-              {!loadingHome ? (<>
+              {!loadingHome && !oddsApiError ? (<>
               {Object.keys(filteredGroupedMatches).map((date) => {
                 // Filter matches for this date
                 const matchesForDate = filteredGroupedMatches[date].filter(
@@ -2545,14 +2642,18 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                   <img 
                                     src = {getImagePath(match.homeTeam)}
                                     alt={match.homeTeam} 
-                                    className="team-logo"/>
+                                    className="team-logo"
+                                    width = {20} height = {20}
+                                    loading="lazy"/>
                                   {match.homeTeam}
                                 </div>
                                 <div className='py-1 text-white fw-bold font-15'>
                                   <img 
                                     src = {getImagePath(match.awayTeam)}
                                     alt={match.awayTeam} 
-                                    className="team-logo"/>
+                                    className="team-logo"
+                                    width = {20} height = {20}
+                                    loading="lazy"/>
                                   {match.awayTeam}
                                 </div>
                               </div>
@@ -2615,7 +2716,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                   market.market.toLowerCase().includes(searchMarket?.[match.id]?.toLowerCase() || '')
                               ).length === 0 ? (
                                 <div className="col-12 text-center py-1 text-lightgrey font-10">
-                                  Oops... An error occured. Please try again later.
+                                  No results found. 
                                 </div>
                               ) : (
                                 match.marketIDs
@@ -2792,17 +2893,29 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                                         <div key={`${market.marketId}-${bets.betName}-${bets.line}`} className="col-12 col-md-6 col-lg-4 col-xl-3 d-flex marketBets mouse-pointer" >
                                         {bets.line === undefined 
                                           ? (
-                                              <div className={`d-flex justify-content-between align-items-center flex-fill marketBetContent ${selectedOdds.some(odd => odd.id === match.id && odd.selectedType === bets.betName && odd.selectedMarket === market.marketTypeName) ? 'marketClicked' : 'market'}`}
-                                                onClick={() => handleOddsClick(match.id, bets.betName, bets.bestOddsDecimal, market.marketTypeName, match)}>
+                                              <div className={`d-flex justify-content-between align-items-center flex-fill marketBetContent ${selectedOdds.some(odd => odd.id === match.id && odd.selectedType === bets.betName && odd.selectedMarket === market.market) ? 'marketClicked' : 'market'}`}
+                                                onClick={() => handleOddsClick(match.id, bets.betName, bets.bestOddsDecimal, market.market, match)}>
                                                 <div className='betsName'>{bets.betName.replace('/', ' / ')}</div>
-                                                <div className='betsOdds'>{Number.isInteger(bets.bestOddsDecimal) ? bets.bestOddsDecimal : Number(bets.bestOddsDecimal).toFixed(2) }</div>
+                                                <div className='betsOdds'>
+                                                  {percentOdds
+                                                  ? `${((1 / bets.bestOddsDecimal) * 100).toFixed(2)}%`
+                                                  : Number.isInteger(bets.bestOddsDecimal)
+                                                  ? Number(bets.bestOddsDecimal)
+                                                  : Number(bets.bestOddsDecimal).toFixed(2)}
+                                                </div>
                                               </div>
                                             )
                                           : (
-                                              <div className={`d-flex justify-content-between align-items-center flex-fill marketBetContent ${selectedOdds.some(odd => odd.id === match.id && odd.selectedType === `${bets.betName}-${bets.line}` && odd.selectedMarket === market.marketTypeName) ? 'marketClicked' : 'market'}`}
-                                              onClick={() => handleOddsClick(match.id, `${bets.betName}-${bets.line}`, bets.bestOddsDecimal, market.marketTypeName, match)}>
+                                              <div className={`d-flex justify-content-between align-items-center flex-fill marketBetContent ${selectedOdds.some(odd => odd.id === match.id && odd.selectedType === `${bets.betName}-${bets.line}` && odd.selectedMarket === market.market) ? 'marketClicked' : 'market'}`}
+                                              onClick={() => handleOddsClick(match.id, `${bets.betName}-${bets.line}`, bets.bestOddsDecimal, market.market, match)}>
                                                 <div className='betsName'>{bets.betName.replace('/', ' / ')} {bets.line}</div>
-                                                <div className='betsOdds'>{Number.isInteger(bets.bestOddsDecimal) ? bets.bestOddsDecimal : Number(bets.bestOddsDecimal).toFixed(2) }</div>
+                                                <div className='betsOdds'>
+                                                  {percentOdds
+                                                  ? `${((1 / bets.bestOddsDecimal) * 100).toFixed(2)}%`
+                                                  : Number.isInteger(bets.bestOddsDecimal)
+                                                  ? Number(bets.bestOddsDecimal)
+                                                  : Number(bets.bestOddsDecimal).toFixed(2)}
+                                                </div>
                                               </div>
                                             )
                                         }
@@ -2824,8 +2937,14 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
                   </div>
                 )
               })}
-                </>) : (<>
-                  <div className='col-12 m-auto mt-5 text-white text-center loadingSpinner'><Spinner animation="border" size="xl" /></div>
+              </>) : oddsApiError ? 
+              (<>
+                <div className="col-12 text-center py-1 text-lightgrey font-10">
+                  Oops... An error occured. Please try again later.
+                </div>
+              </> 
+              ) :( <>
+                <div className='col-12 m-auto mt-5 text-white text-center loadingSpinner'><Spinner animation="border" size="xl" /></div>
               </>)}
             </div>
           </div>

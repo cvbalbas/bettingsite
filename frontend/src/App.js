@@ -19,8 +19,7 @@ import React, { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  // Make sure to import Firebase auth
 import { Navigate } from 'react-router-dom';
 import epl from "./images/epl.png";
-import ligue1 from "./images/ligue1.png";
-import bundesliga from "./images/bundesliga.png";
+
 
 
 
@@ -28,12 +27,24 @@ function App() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
 
-  const [walletBalance, setWalletBalance]= useState('')
+  const [walletBalance, setWalletBalance]= useState(() => {
+    // Load selectedOdds from localStorage or initialize as an empty array if none exists
+    const walletBalance = localStorage.getItem('walletBalance');
+    return walletBalance ? walletBalance : '0.00';
+  });
+  const [usernameInfo, setUsernameInfo]= useState(() => {
+    // Load selectedOdds from localStorage or initialize as an empty array if none exists
+    const username = localStorage.getItem('username');
+    return username ? username : '';
+  });
   const [selectedOdds, setSelectedOdds] = useState(() => {
     // Load selectedOdds from localStorage or initialize as an empty array if none exists
     const savedOdds = localStorage.getItem('selectedOdds');
     return savedOdds ? JSON.parse(savedOdds) : [];
   });
+
+  const [invalidMatches, setInvalidMatches] = useState([]);
+
   const [betsOpen, setBetsOpen] = useState(() => {
     // Load betsAmount from localStorage or initialize to 0
     const savedBetsOpen = localStorage.getItem('betsOpen');
@@ -106,7 +117,9 @@ function App() {
         const data = await response.json();
         // console.log(data)
         setWalletBalance(data.user?.wallet_balance || 0);
-        // console.log(data.user?.wallet_balance)
+        setUsernameInfo(data.user?.username || '')
+        localStorage.setItem('username', (data.user?.username || ''));
+        console.log(data.user?.username)
         localStorage.setItem('walletBalance', (data.user?.wallet_balance || 0));
         setRole(data.user?.admin ?? false); // Ensure role is always set
         setIsPremium({
@@ -225,7 +238,7 @@ function App() {
       <div className='top-nav bg-black'></div>
       <div className='bot-nav bg-black shadow-box'></div>
       <LoginModal showModal={loginModalOpen} closeModal={closeLoginModal} user = {user} setUser = {setUser} setSignupModalOpen={setSignupModalOpen} />
-      <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} setWalletBalance={setWalletBalance} phoneSetUp={phoneSetUp} setPhoneSetUp = {setPhoneSetUp} registeredPhone={registeredPhone} setRegisteredPhone={setRegisteredPhone} setLoading={setLoading} setIsPremium = {setIsPremium} setRole = {setRole} />
+      <SignupModal showModal={signupModalOpen} closeModal={closeSignupModal} user = {user} setUser = {setUser} setLoginModalOpen={setLoginModalOpen} setDisclaimerOpen = {setDisclaimerOpen} setWalletBalance={setWalletBalance} phoneSetUp={phoneSetUp} setPhoneSetUp = {setPhoneSetUp} registeredPhone={registeredPhone} setRegisteredPhone={setRegisteredPhone} setLoading={setLoading} setIsPremium = {setIsPremium} setRole = {setRole} setUsernameInfo={setUsernameInfo}/>
       <Disclaimer showModal={disclaimerOpen} closeModal={closeDisclaimerModal} user = {user} setUser = {setUser}/>
       <PremiumModal showModal={premiumModal} closeModal={closePremiumModal} user = {user} isPremium={isPremium} setIsPremium={setIsPremium} openSignupModal={openSignupModal} />
       <AddCoinsModal showModal={addCoinsModal} closeModal={closeAddCoinsModal} setUser={setUser} user = {user} setCoinsToAdd={setCoinsToAdd}/>
@@ -233,7 +246,7 @@ function App() {
 
       <div className="App d-flex">
         <div className={`m-auto ${betsOpen ? 'home':'homesmall'}`}>
-        <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} setIsPremium={setIsPremium} />
+        <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} setIsPremium={setIsPremium} setUsernameInfo = {setUsernameInfo} />
         
         
         
@@ -244,7 +257,7 @@ function App() {
             <Route path = '/' element={
               <>
                 <Selector selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} />
-                <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass} setPhoneSetUp={setPhoneSetUp} setRole={setRole} openSignupModal={openSignupModal} setLoading={setLoading} selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} percentOdds={percentOdds} setPercentOdds={setPercentOdds} />
+                <Home user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} betsOpen={betsOpen} setBetsOpen={setBetsOpen} betAmounts={betAmounts} setBetAmounts={setBetAmounts} estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} handleClearAllBets={handleClearAllBets} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass} setPhoneSetUp={setPhoneSetUp} setRole={setRole} openSignupModal={openSignupModal} setLoading={setLoading} selectedLeague={selectedLeague} setSelectedLeague={setSelectedLeague} percentOdds={percentOdds} setPercentOdds={setPercentOdds}  invalidMatches={invalidMatches} setInvalidMatches={setInvalidMatches}/>
               </>
               }>
             </Route>
@@ -257,7 +270,7 @@ function App() {
               }>
             </Route>
             <Route path = '/account' element={
-              <AccountSettings user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} openAddCoinsModal={openAddCoinsModal} closeAddCoinsModal={closeAddCoinsModal} coinsToAdd={coinsToAdd}/>}>
+              <AccountSettings user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} openAddCoinsModal={openAddCoinsModal} closeAddCoinsModal={closeAddCoinsModal} coinsToAdd={coinsToAdd} usernameInfo={usernameInfo} />}>
             </Route>
 
             <Route path = '/admin' element={
@@ -277,8 +290,8 @@ function App() {
           <BetsSidebar selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} 
           closeSidebar={closeSidebar}  betAmounts = {betAmounts} setBetAmounts = {setBetAmounts} 
           estimatedPayouts={estimatedPayouts} setEstimatedPayouts={setEstimatedPayouts} 
-          openSignupModal={openSignupModal} handleClearAllBets={handleClearAllBets} user={user} setWalletBalance={setWalletBalance} 
-          setShowAlert={setShowAlert} setAlertText={setAlertText} setAnimationClass={setAnimationClass} setUser={setUser} percentOdds={percentOdds} />
+          openSignupModal={openSignupModal} handleClearAllBets={handleClearAllBets} user={user} setWalletBalance={setWalletBalance} walletBalance = {walletBalance} 
+          setShowAlert={setShowAlert} setAlertText={setAlertText} setAnimationClass={setAnimationClass} setUser={setUser} percentOdds={percentOdds} invalidMatches={invalidMatches} setInvalidMatches={setInvalidMatches} />
         </div>
       </div>
       <div id="recaptcha-container"></div> {/* reCAPTCHA container */}
