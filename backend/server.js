@@ -20,16 +20,16 @@ app.listen(PORT, () => {
 var mysql = require("mysql2");
 
 var pool = mysql.createPool({
-  // host: process.env.DB_HOST,
-  // port: 3306,
-  // user: process.env.DB_USER,
-  // password: process.env.DB_PASSWORD,
-  // database: process.env.DB_DATABASE,
-  host: "localhost",
+  host: process.env.DB_HOST,
   port: 3306,
-  user: "root",
-  password: "",
-  database: "bets",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  // host: "localhost",
+  // port: 3306,
+  // user: "root",
+  // password: "",
+  // database: "bets",
   waitForConnections: true,
   connectionLimit: 20,  // adjust based on expected users
   queueLimit: 0
@@ -1304,9 +1304,9 @@ app.post('/api/mark-notifications-read', async (req, res) => {
 
 
 
-// // Serve React frontend
-// app.use(express.static(path.join(__dirname, "../frontend/build")));
+// Serve React frontend
+app.use(express.static(path.join(__dirname, "../frontend/build")));
 
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-// });
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+});
