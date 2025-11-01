@@ -18,8 +18,9 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#142828",
   "theme_color": "#1F3D3D",
   "description": "FantasyBet.gg — Bet using coins, play fantasy sports, and climb the leaderboard! No real money involved."
