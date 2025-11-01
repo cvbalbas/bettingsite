@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import AccountSettings from './components/AccountSettings';
 import NavBar from './components/NavBar';
+import MobNavBar from './components/MobileNavBar';
+
 import Selector from './components/Selector';
 
 import BetsSidebar from './components/BetsSidebar';
@@ -12,6 +14,7 @@ import LoginModal from './components/Login';
 import SignupModal from './components/Register';
 import Disclaimer from './components/Disclaimer';
 import PremiumModal from './components/PremiumModal';
+import Leaderboard from './components/Leaderboard';
 // import CheckoutPremium from './components/CheckoutPremium';
 import AddCoinsModal from './components/AddCoinsModal';
 import AdminDashboard from './components/AdminDashboard'
@@ -245,7 +248,7 @@ function App() {
 
 
       <div className="App d-flex">
-        <div className={`m-auto ${betsOpen ? 'home':'homesmall'}`}>
+        <div className={`app-in m-auto ${betsOpen ? 'home':'homesmall'}`}>
         <NavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} setIsPremium={setIsPremium} setUsernameInfo = {setUsernameInfo} />
         
         
@@ -270,7 +273,10 @@ function App() {
               }>
             </Route>
             <Route path = '/account' element={
-              <AccountSettings user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} openAddCoinsModal={openAddCoinsModal} closeAddCoinsModal={closeAddCoinsModal} coinsToAdd={coinsToAdd} usernameInfo={usernameInfo} />}>
+              <AccountSettings user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} openAddCoinsModal={openAddCoinsModal} closeAddCoinsModal={closeAddCoinsModal} coinsToAdd={coinsToAdd} usernameInfo={usernameInfo} setUsernameInfo={setUsernameInfo} setPhoneSetUp={setPhoneSetUp} setBetsOpen={setBetsOpen} setLoading={setLoading} handleClearAllBets={handleClearAllBets} setRole={setRole} />}>
+            </Route>
+            <Route path = '/leaderboard' element={
+              <Leaderboard user={user} setUser={setUser} walletBalance={walletBalance} setWalletBalance={setWalletBalance} isPremium={isPremium} setIsPremium={setIsPremium} openPremiumModal={openPremiumModal} closePremiumModal={closePremiumModal} openAddCoinsModal={openAddCoinsModal} closeAddCoinsModal={closeAddCoinsModal} coinsToAdd={coinsToAdd} usernameInfo={usernameInfo} />}>
             </Route>
 
             <Route path = '/admin' element={
@@ -284,7 +290,11 @@ function App() {
             }></Route>
 
           </Routes>
-        </BrowserRouter>
+        </BrowserRouter>        
+        </div>
+        <div className = "mob-nav">
+          <MobNavBar className={`m-auto ${betsOpen ? 'navbar':'navbarsmall'}`} openLoginModal = {openLoginModal} openSignupModal = {openSignupModal} user = {user} setUser = {setUser} selectedOdds={selectedOdds} setBetsOpen={setBetsOpen} betsOpen={betsOpen} handleClearAllBets={handleClearAllBets} walletBalance={walletBalance} loading={loading} setLoading={setLoading} setRole={setRole} setPhoneSetUp={setPhoneSetUp} setIsPremium={setIsPremium} setUsernameInfo = {setUsernameInfo} />
+
         </div>
         <div className={`animate ${betsOpen ? 'betsOpen':'close'}`}>
           <BetsSidebar selectedOdds={selectedOdds} setSelectedOdds={setSelectedOdds} 
@@ -294,6 +304,8 @@ function App() {
           setShowAlert={setShowAlert} setAlertText={setAlertText} setAnimationClass={setAnimationClass} setUser={setUser} percentOdds={percentOdds} invalidMatches={invalidMatches} setInvalidMatches={setInvalidMatches} />
         </div>
       </div>
+      
+      
       <div id="recaptcha-container"></div> {/* reCAPTCHA container */}
 
     </div>

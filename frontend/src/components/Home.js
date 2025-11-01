@@ -2560,7 +2560,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
 
 
   return (
-    <div>
+    <div className = "">
       <div className='col-lg-10 col-sm-12 m-auto'>
         <div className='alertsBox'>
           {showAlert && (
@@ -2579,7 +2579,7 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
         {/* <div className='text-start text-white mt-4 mb-3 d-flex justify-content-between align-items-center'>
           <div className='col-12'><h1>Premier League Matches</h1></div>
         </div> */}
-        <div className='bg-green shadow-down rounded pb-3 mb-5'>
+        <div className='bg-green shadow-down rounded mb-5 pb-3 homepage'>
           <div className='col-12'>
             <div className='col-12 row d-flex align-items-center justify-content-between'>
               <div className="col-8 searchgroup text-end d-flex align-items-center">

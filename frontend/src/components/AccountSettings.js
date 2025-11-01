@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getCurrentUser } from "../firebase/authMethods"; 
 import { resetPassword } from "../firebase/authMethods"; 
+import { logOut } from "../firebase/authMethods";
+
 import currency from "../images/moneybag.png"
 import empty from "../images/Empty.png"
 import { useNavigate } from "react-router-dom";
@@ -9,10 +11,11 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
 
-export default function AccountSettings({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, openPremiumModal, closePremiumModal, openAddCoinsModal, closeAddCoinsModal, coinsToAdd, usernameInfo}) {
+
+export default function AccountSettings({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPremium, openPremiumModal, closePremiumModal, openAddCoinsModal, closeAddCoinsModal, coinsToAdd, usernameInfo, setUsernameInfo, setPhoneSetUp, setBetsOpen, setLoading, handleClearAllBets, setRole}) {
   const [transactions, setTransactions] = useState([]);
   const [reset, setReset] = useState(false)
-  const [switcher, setSwitcher] = useState('account');
+  const [switcher, setSwitcher] = useState('bets');
   const [betHistory, setBetHistory] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -62,10 +65,38 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
     
     if(user) {
       fetchUserData();
+      getBetsHistory();
     }
     
   }, [user, walletBalance]);
+  
+  const handleLogOut = async () => {
+    logOut()
+    .then(() => {
+      setUsernameInfo('')
+      setPhoneSetUp(false)
+      setUser(null);
+      setBetsOpen(false);
+      handleClearAllBets();
+      setLoading(false);
+      setIsPremium({
+        isPremium: false,
+        isPremiumTrial: false,
+        trialExpiresAt: null,
+      })
+      setRole(null)
+      localStorage.setItem('username', '');
+      localStorage.setItem('walletBalance', 0)
 
+
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    })
+    .catch((error) => {
+      setLoading(false);
+    });
+  }
 
 
   useEffect(() => {
@@ -206,14 +237,15 @@ function filterBets(betHistory){
   return (
     <div className='col-lg-10 col-sm-12 m-auto'>
       <div className='switch col-4 d-flex justify-content-between align-items-center text-center mt-4 p-1 mb-3'>
-        <div className={`mouse-pointer p-2 account ${switcher === 'account' ? 'bg-lightgreen': ''}`} onClick={() => setSwitcher('account')}>Account</div>
         <div className={`mouse-pointer p-2 wallet ${switcher === 'bets' ? 'bg-lightgreen': ''}`} onClick={() => { getBetsHistory(); setSwitcher('bets')}}>Bets</div>
+        <div className={`mouse-pointer p-2 account ${switcher === 'account' ? 'bg-lightgreen': ''}`} onClick={() => setSwitcher('account')}>Account</div>
+
       </div>
 
       <div className='row bg-green shadow-down rounded py-4 mb-5 match-list m-auto'>
         {switcher === 'account' ? ( 
           <>
-          <div className='col-12 col-xxl-5 matchMarginAccount my-2'>
+          <div className='col-12 matchMarginAccount my-2'>
           <div className="row g-3 align-items-center d-flex">
             <div className="col-4">
               <label htmlFor="usernameContainer" className="col-form-label text-grey text-uppercase">Username</label>
@@ -345,6 +377,13 @@ function filterBets(betHistory){
                 : isPremium.isPremiumTrial && (new Date(isPremium.trialExpiresAt) <= new Date()) ? 'Trial expired — upgrade for % conversion.':''} </span>
               )}
             </div>
+          </div>
+          <div className='row g-3 alignt-items-center justify-content-start my-1'>
+            <div className='col-12 text-end'> 
+              <button onClick={handleLogOut} className='btn border sfw-bold text-white py-2 px-5 logout'>Logout</button>
+
+            </div>
+            
           </div>
 
           </div>

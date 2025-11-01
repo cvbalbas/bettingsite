@@ -552,6 +552,42 @@ app.post('/api/bets-history', async (req, res) => {
   }
 });
 
+// server/routes/leaderboards.js
+app.get("/api/leaderboards", async (req, res) => {
+  try {
+    const earnings = await executeQuery(`
+      SELECT 
+        u.username,
+        COALESCE(SUM(
+          CASE 
+            WHEN b.status = 'won' THEN b.potential_payout
+            WHEN b.status = 'lost' THEN -b.bet_amount
+            ELSE 0
+          END
+        ), 0) AS net_earnings
+      FROM bets_list b
+      JOIN betsusers u ON b.uid = u.uid
+      GROUP BY b.uid
+      ORDER BY net_earnings DESC
+      LIMIT 50
+    `);
+
+    const balances = await executeQuery(`
+      SELECT username, wallet_balance 
+      FROM betsusers 
+      ORDER BY wallet_balance DESC 
+      LIMIT 50
+    `);
+    console.log(balances)
+    console.log(earnings)
+
+    res.json({ topEarnings: earnings, topBalances: balances });
+  } catch (err) {
+    console.error("Error fetching leaderboards:", err);
+    res.status(500).json({ error: "Failed to fetch leaderboards" });
+  }
+});
+
 
 function toMySQLDateTime(jsDate) {
   // console.log(jsDate.toISOString().slice(0, 19).replace('T', ' '))

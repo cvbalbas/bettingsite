@@ -58,6 +58,12 @@ body::-webkit-scrollbar-thumb
   background-color: #141414 !important;
 }
 
+.mob-nav {
+  display: none !important;
+}
+
+
+
 .bg-red {
   border: 2px solid red;       /* or background-color: rgba(255,0,0,0.1) */
   background-color: rgba(255,0,0,0.1);
@@ -115,13 +121,13 @@ h1 {
   font-size: 12px;
 }
 .font-15 {
-  font-size: 15px;
+  font-size: 15px !important;
 }
 .font-18 {
-  font-size: 18px;
+  font-size: 18px !important;
 }
 .font-20 {
-  font-size: 20px;
+  font-size: 20px !important;
 }
 
 .date {
@@ -354,14 +360,35 @@ input:focus {
 .balance:hover {
   color: #f36c18;
 }
+.balance .currencyImg {
+  margin-right: 5vw;
+}
 .navbar {
   width: calc(100vw - 330px);
 }
 .navbarsmall {
   width: calc(100vw - 200px);
 }
+.pagination {
+  color: #D9D9D9
+}
+.pagination .btn {
+  color: #D9D9D9;
+}
+.pagination .btn:hover {
+  color: white;
+}
+.pagination .btn:disabled {
+  color: #346565;
+}
+
+.leaderboards-list {
+  height: calc(100vh - 200px);
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
 .match-list {
-  height: calc(100vh - 220px);
+  height: calc(100vh - 200px);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
@@ -736,6 +763,12 @@ svg:hover path {
   width: 100%;
   border-radius: 5px;
 }
+.leaderboards {
+  background-color: #1F3D3D !important;
+  color: white;
+  width: 100%;
+  border-radius: 5px;
+}
 .balanceInput .inputDiv {
   border-radius: 5px 0px 0px 5px;
   background-color: #141428;
@@ -752,13 +785,18 @@ svg:hover path {
 .form-control {
   font-size: 15px !important;
 }
+.tableWrapLeaderboard {
+  height: 56vh;
+  overflow-y:hidden;
+  border-radius: 5px;
+}
 
 .tableWrap {
-  max-height: 58vh;
+  max-height: 55vh;
   overflow-y: auto;
   border-radius: 5px;
-
 }
+
 .tableWrap::-webkit-scrollbar-track
 {
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
@@ -778,6 +816,41 @@ svg:hover path {
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
 	background-color: #0E1D1D;
 }
+
+/* Set header to stick to the top of the container. */
+.leaderboards thead tr th {
+  position: sticky;
+  top: 0;
+}
+
+/* If we use border,
+we must use table-collapse to avoid
+a slight movement of the header row */
+.leaderboards {
+ border-collapse: collapse;
+}
+
+.leaderboards td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #346565;
+}
+.leaderboards th {
+  padding: 10px 10px;
+  border-bottom: 1px solid #346565;
+  background-color: #274e4e;
+
+}
+.leaderboards tr {
+  transition-duration: 300ms;
+}
+.leaderboards tr:hover {
+  background-color: #346565;
+}
+
+.xsmall{
+  font-size: x-small;
+}
+
 /* Set header to stick to the top of the container. */
 .transactions thead tr th {
   position: sticky;
@@ -1093,13 +1166,34 @@ a slight movement of the header row */
   }
   .changePw {
     text-align: right;
-  }
-  
+  }  
+
+
 }
 
 @media only screen and (max-width: 576px) { /*XS ---------------------------*/
   body {
     font-size: 0.7rem !important;
+  }
+  
+  .match-list {
+    padding-bottom: 100px !important;
+  }
+
+  .navigation {
+    display: none !important;
+  }
+  .mob-nav {
+    display: flex !important;
+    height: 55px;
+    position: fixed;
+    bottom: 0px;
+    margin: 0px;
+    width: 100vw;
+  }
+  
+  .mob-logo-bar {
+    width: 100%;
   }
   .searchgroup {
     font-size: 10px;
@@ -1179,7 +1273,10 @@ a slight movement of the header row */
     padding-top: 5px;
     padding-bottom: 5px;
   }
-  .match-list {
+  .leaderboards-list {
+    height: calc(100vh - 200px);
+  }
+  .match-list  {
     height: calc(100vh - 200px);
     padding-bottom: 50px;
   }
@@ -1208,6 +1305,12 @@ a slight movement of the header row */
   .transactions {
     font-size: 10px;
   }
+  .leaderboards {
+    font-size: 10px;
+  }
+  .balance .currencyImg {
+    margin-right: 1vw;
+  }
   .currencyImg {
     width: 15px;
     height: 15px;
@@ -1218,5 +1321,14 @@ a slight movement of the header row */
   .matchMarginAccount {
     padding-left: 15px;
     padding-right: 10px;
+  }
+  .logout {
+    width: 100%;
+  }
+  .alertsBox {
+    position: absolute;
+    bottom: 15vh;
+    right: 5px;
+    width: 200px;
   }
 }

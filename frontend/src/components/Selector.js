@@ -101,14 +101,14 @@ export default function App({selectedLeague, setSelectedLeague}) {
                         <div
                         key={league.key}
                         className="d-flex flex-column align-items-center text-center flex-shrink-0"
-                        style={{ width: "50px" , height: "60px"}}
+                        style={{ width: "40px" , height: "40px"}}
                     >
                         <button
                             key={league.key}
                             onClick={() => setSelectedLeague(league)}
                             className={`btn p-0 bg-grey flex-shrink-0 rounded-circle ${
                                 selectedLeague.key === league.key
-                                ? "border-orange shadow-lg border-4"
+                                ? "border-orange shadow-lg border-3"
                                 : "border-grey border-1"
                             }`}
                             style={{
@@ -130,9 +130,9 @@ export default function App({selectedLeague, setSelectedLeague}) {
                             loading="lazy"
                             />
                         </button>
-                        <small className="text-light mt-1 font-10">
+                        {/* <small className="text-light mt-1 font-10">
                             {league.name.length > 6 ? league.name.slice(0, 6) + "…" : league.name}
-                        </small>
+                        </small> */}
                     </div>
                     ))}
                 </div>

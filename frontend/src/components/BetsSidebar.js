@@ -32,8 +32,23 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
   const removeBet = (bet) => {
     const betKey = `${bet.id}$${bet.selectedMarket}$${bet.selectedType}`;
 
-    setSelectedOdds((prevOdds) =>
-      prevOdds.filter((selectedBet) => selectedBet.id !== bet.id || selectedBet.selectedType !== bet.selectedType || selectedBet.selectedMarket !== bet.selectedMarket)
+    setSelectedOdds((prevOdds) => {
+      const updatedOdds = prevOdds.filter(
+        (selectedBet) =>
+          selectedBet.id !== bet.id ||
+          selectedBet.selectedType !== bet.selectedType ||
+          selectedBet.selectedMarket !== bet.selectedMarket
+      );
+
+      if (updatedOdds.length === 0) {
+        closeSidebar();
+      }
+
+      return updatedOdds;
+    });
+
+    setInvalidMatches((prevOdds) =>
+      prevOdds.filter((selectedBet) => selectedBet !== betKey)
     );
 
     setBetAmounts((prevAmounts) => {
@@ -124,6 +139,7 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
 
       // --- Success ---
       console.log('Odds saved successfully:', data);
+      localStorage.setItem('walletBalance', data.wallet_balance)
       setWalletBalance(data.wallet_balance);
       closeSidebar();
       handleClearAllBets();
@@ -175,7 +191,8 @@ export default function BetsSidebar ({ selectedOdds, setSelectedOdds, closeSideb
               <div className='text-end text-grey pt-3 pb-2 px-4 font-12 mouse-pointer' 
               onClick={ () => {
                 handleClearAllBets(); 
-                setInvalidMatches([])
+                setInvalidMatches([]);
+                closeSidebar();
               }}>Clear all</div>
               {selectedOdds.length > 0 ? (
                 selectedOdds.map((bet, index) => {
