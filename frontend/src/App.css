@@ -1,6 +1,6 @@
 .container {
   overflow-y: scroll;
-  height: 80vh;
+  height: 80dvh;
   color: white;
 }
 body {
@@ -103,7 +103,7 @@ body::-webkit-scrollbar-thumb
 }
 
 .loadingSpinner {
-  margin-top: 30vh !important;
+  margin-top: 30dvh !important;
 }
 label {
   font-size: 12px;
@@ -383,12 +383,12 @@ input:focus {
 }
 
 .leaderboards-list {
-  height: calc(100vh - 200px);
+  height: calc(100dvh - 200px);
   overflow-y: hidden;
   overflow-x: hidden;
 }
 .match-list {
-  height: calc(100vh - 200px);
+  height: calc(100dvh - 200px);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
@@ -425,7 +425,7 @@ input:focus {
   position: fixed;
   top: 0px;
   right:0px;
-  height: calc(100vh + 92px);
+  height: 100dvh;
   width: 300px
 }
 .empty {
@@ -433,7 +433,7 @@ input:focus {
   height: auto;
 }
 .bets-list {
-  height: calc(100vh - 240px);
+  height: calc(100dvh - 70px - 200px);
   overflow-y: auto;
 }
 
@@ -532,7 +532,7 @@ input:focus {
   align-items: center;
 }
 .totalBets {
-  height: 240px;
+  height: 200px;
   background-color: #0E1D1D;
 }
 .placebet {
@@ -786,13 +786,13 @@ svg:hover path {
   font-size: 15px !important;
 }
 .tableWrapLeaderboard {
-  height: 56vh;
+  height: 56dvh;
   overflow-y:hidden;
   border-radius: 5px;
 }
 
 .tableWrap {
-  max-height: 55vh;
+  max-height: 55dvh;
   overflow-y: auto;
   border-radius: 5px;
 }
@@ -924,7 +924,7 @@ a slight movement of the header row */
 }
 .alertsBox {
   position: absolute;
-  bottom: 10vh;
+  bottom: 10dvh;
   right: 10px;
   width: 200px;
 }
@@ -1016,7 +1016,7 @@ a slight movement of the header row */
   font-size: 0.8em !important;
   text-align: left;
   scrollbar-gutter: stable;
-  max-height: 50vh;
+  max-height: 50dvh;
   overflow-y: auto;
 }
 .dropdown-notification::-webkit-scrollbar-track
@@ -1154,7 +1154,8 @@ a slight movement of the header row */
     width: 100vw;
   }
   .bets-container {
-    width: 100vw
+    width: 100vw;
+    height: 100dvh;
   }
   .matchMargin {
     padding-left: 10px;
@@ -1274,10 +1275,10 @@ a slight movement of the header row */
     padding-bottom: 5px;
   }
   .leaderboards-list {
-    height: calc(100vh - 200px);
+    height: calc(100dvh - 200px);
   }
   .match-list  {
-    height: calc(100vh - 200px);
+    height: calc(100dvh - 200px);
     padding-bottom: 50px;
   }
   .drop {
@@ -1290,7 +1291,7 @@ a slight movement of the header row */
     font-size: 14px;
   }
   .bets-list {
-    height: calc(100vh - 260px);
+    height: calc(100dvh - 20px - 200px);
     overflow-y: auto;
   }
   .input {
@@ -1327,7 +1328,7 @@ a slight movement of the header row */
   }
   .alertsBox {
     position: absolute;
-    bottom: 15vh;
+    bottom: 15dvh;
     right: 5px;
     width: 200px;
   }
