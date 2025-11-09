@@ -98,6 +98,10 @@ body::-webkit-scrollbar-thumb
   color: white !important;
 }
 
+.text-lightgreen {
+  color: #346565;
+}
+
 .logo-bar {
   height: 50px;
 }
@@ -300,6 +304,13 @@ input:focus {
 }
 .btn-prim:hover {
   background-color: #f36c18 !important;
+}
+.btn-danger {
+  background-color: #dc3545 !important;
+  transition-duration: 300ms;
+}
+.btn-danger:hover {
+  background-color: #c6303f !important;
 }
 
 .title {
@@ -892,11 +903,23 @@ a slight movement of the header row */
 .badges {
   padding: 0px !important;
 }
-.key .badge {
+.status-item .badge {
   margin-left: 10px;
   top: -2px;
   position: relative;
 }
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 4px;
+}
+
 .table-fit {
   width: auto !important;
   table-layout: auto !important; /* Adjust column width based on content */
@@ -905,7 +928,7 @@ a slight movement of the header row */
 }
 
 .selectDiv button {
-  width: 120px;
+  width: 100px;
 }
 .select {
   background-color: #346565;
@@ -1058,6 +1081,13 @@ a slight movement of the header row */
   color:red;
   font-weight: bold;
 }
+
+
+.result-void {
+  color: #535353;
+  font-weight: bold;
+}
+
 .react-tel-input .form-control {
   width: 100% !important;
 }

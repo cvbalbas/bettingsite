@@ -228,3 +228,7 @@ fix the margin of place bet in mobile view
 
 
 check for duplicate usernames
+
+
+admin dashboard, fix wrapping of logo and name
+error in mobile is hidden. put error (past matches/zero bets) in betssidebar

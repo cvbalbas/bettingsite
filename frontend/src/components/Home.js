@@ -179,6 +179,9 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       try {
         const response = await fetch(`/api/odds?league=${league.key}`);
         const data = await response.json();
+        // console.log(data)
+        // data["data"][2]["sites"].length = 0
+        console.log(data)
 
         if (!response.ok) {
           setOddsApiError(true);
@@ -863,10 +866,19 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
       let index_home = match.teams.indexOf(match.home_team)
       let index_away = match.teams.indexOf(match.teams.filter(team => team !== match.home_team)[0])
 
+      // Check if site + odds exist before using them
+      const site = match.sites?.[lowestIndex];
+      const h2h = site?.odds?.h2h;
 
-      const homeOdds = match.sites[lowestIndex].odds.h2h[index_home];
-      const drawOdds = match.sites[lowestIndex].odds.h2h[2];
-      const awayOdds = match.sites[lowestIndex].odds.h2h[index_away];
+      if (!h2h || h2h.length !== 3) {
+        console.log(match.teams)
+        return; // Skip match, odds are incomplete or missing
+      }
+
+      const homeOdds = h2h[index_home];
+      const drawOdds = h2h[2];
+      const awayOdds = h2h[index_away];
+  
 
       // Step 1: implied probabilities
       const probHome = 1 / homeOdds;
@@ -893,6 +905,15 @@ function App({user, setUser, walletBalance, setWalletBalance, isPremium, setIsPr
      
       // console.log(index_home, index_away)
       const matchDateTime = new Date(match.commence_time * 1000); // convert to Date object
+
+      // Skip if any odds are missing or zero/non-numeric
+      if (
+        !normHomeOdds || !normDrawOdds || !normAwayOdds ||
+        isNaN(normHomeOdds) || isNaN(normDrawOdds) || isNaN(normAwayOdds)
+      ) {
+        console.log(match.teams)
+        return;
+      }
       if (matchDateTime > new Date()) {
         groupedMatches[matchDate].push({
           fixture: subeventName,

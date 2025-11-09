@@ -530,7 +530,7 @@ app.post('/api/bets-history', async (req, res) => {
             AND (
               (bl.status = 'pending' AND transaction_type = 'bet')
               OR
-              (bl.status IN ('won', 'lost') AND transaction_type IN ('win', 'loss'))
+              (bl.status IN ('won', 'lost' , 'void') AND transaction_type IN ('win', 'loss', 'refund'))
             )
         )
       WHERE bl.uid = ?
@@ -567,6 +567,7 @@ app.get("/api/leaderboards", async (req, res) => {
         ), 0) AS net_earnings
       FROM bets_list b
       JOIN betsusers u ON b.uid = u.uid
+      WHERE u.admin != 1
       GROUP BY b.uid
       ORDER BY net_earnings DESC
       LIMIT 50
@@ -575,9 +576,11 @@ app.get("/api/leaderboards", async (req, res) => {
     const balances = await executeQuery(`
       SELECT username, wallet_balance 
       FROM betsusers 
+      WHERE admin != 1
       ORDER BY wallet_balance DESC 
       LIMIT 50
     `);
+
     console.log(balances)
     console.log(earnings)
 
@@ -1291,6 +1294,85 @@ app.post('/api/update-bet-results', async (req, res) => {
     res.status(500).json({ success: false, error: "Error updating bet results." });
   }
 });
+
+// Void market and refund
+app.post('/api/void-bet-market', async (req, res) => {
+  const { match_day, time, fixture, bet_market } = req.body;
+
+  try {
+    // --- Verify token ---
+    const token = req.headers.authorization?.split("Bearer ")[1];
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const tokenUID = decodedToken.uid;
+    console.log("Verified UID:", tokenUID);
+
+    // --- Validate admin ---
+    const [user] = await executeQuery('SELECT admin FROM betsusers WHERE uid = ?', [tokenUID]);
+    if (!user || user.admin !== 1)
+      return res.status(403).json({ success: false, error: "Unauthorized access" });
+
+    // --- Start SQL Transaction ---
+    await executeQuery("START TRANSACTION");
+
+    // Format match date
+    let match_date = match_day + " " + time;
+    if (match_date.startsWith("0")) match_date = match_date.slice(1);
+
+    console.log("VOIDING MARKET:", match_date, fixture, bet_market);
+
+    // 1) Mark all bets as void
+    await executeQuery(
+      `UPDATE bets_list 
+       SET status = 'void', settled_at = NOW() 
+       WHERE match_date = ? AND fixture = ? AND bet_market = ?`,
+      [match_date, fixture, bet_market]
+    );
+
+    // 2) Fetch all bets for refund
+    const refundBets = await executeQuery(
+      `SELECT bet_id, uid, bet_amount
+       FROM bets_list 
+       WHERE match_date = ? AND fixture = ? AND bet_market = ?`,
+      [match_date, fixture, bet_market]
+    );
+
+    // 3) Process every refund
+    for (const { bet_id, uid, bet_amount } of refundBets) {
+      // Insert wallet transaction
+      await executeQuery(
+        `INSERT INTO bets_wallet_transactions (uid, bet_id, transaction_type, amount, transaction_date)
+         VALUES (?, ?, 'refund', ?, NOW())`,
+        [uid, bet_id, bet_amount]
+      );
+
+      // Update wallet balance
+      await executeQuery(
+        `UPDATE betsusers SET wallet_balance = wallet_balance + ? WHERE uid = ?`,
+        [bet_amount, uid]
+      );
+
+      // Notification
+      await executeQuery(
+        `INSERT INTO bets_notifications (uid, message)
+         VALUES (?, ?)`,
+        [uid, `Your bet from <strong>${fixture} (${bet_market})</strong> was <span class="result-void">voided</span>. Your stake was refunded.`]
+      );
+    }
+
+    // --- Commit transaction ---
+    await executeQuery("COMMIT");
+    res.json({ success: true, message: "Market successfully voided and all bets refunded." });
+
+  } catch (error) {
+    console.error("Error voiding market:", error);
+    await executeQuery("ROLLBACK").catch(() => {});
+
+    res.status(500).json({ success: false, error: "Error voiding bet market." });
+  }
+});
+
 
 
 // Fetch Unread Notifications (with Firebase verification)

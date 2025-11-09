@@ -55,6 +55,7 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
           body: JSON.stringify({user}),
         });
         const data = await response.json();
+        console.log("transactions:", data)
         setTransactions(data.results);
       } catch (error) {
         console.error('Error fetching user data', error);
@@ -172,6 +173,7 @@ export default function AccountSettings({user, setUser, walletBalance, setWallet
         body: JSON.stringify({user}),
       });
       const data = await response.json();
+      console.log("bets history:", data )
       setBetHistory(data.results);
       filterBets(data.results);
     } catch (error) {
@@ -195,7 +197,7 @@ function filterBets(betHistory){
       bet["fixture"].toLowerCase().includes(searchTerm.toLowerCase()) ||
       bet["bet_market"].toLowerCase().includes(searchTerm.toLowerCase());
   
-    const matchesFilter = filterType === 'settled' ? (bet.status === 'won' || bet.status === 'lost')
+    const matchesFilter = filterType === 'settled' ? (bet.status === 'won' || bet.status === 'lost' || bet.status === 'void')
       : filterType === 'pending' ? (bet.status === 'pending')
       : true; 
   
@@ -491,9 +493,10 @@ function filterBets(betHistory){
               <div className='d-inline-block col-12 col-md-8'>
                 <div className=' d-flex justify-content-end align-items-center'>
                 <div className='text-white text-end key me-3'>
-                  <span className='badge bg-secondary'>&nbsp;</span> Pending &nbsp;
-                  <span className='badge bg-success'>&nbsp;</span> Won &nbsp;
-                  <span className='badge bg-danger'>&nbsp;</span> Lost &nbsp;
+                  <span className="status-item"><span className='badge bg-secondary'>&nbsp;</span> Pending</span>
+                    <span className="status-item"><span className='badge bg-success'>&nbsp;</span> Won</span>
+                    <span className="status-item"><span className='badge bg-danger'>&nbsp;</span> Lost</span>
+                    <span className="status-item"><span className='badge bg-dark'>&nbsp;</span> Void</span>
                 </div>
                 <div className='selectDiv'>
                   <div className="btn-group">
@@ -559,15 +562,15 @@ function filterBets(betHistory){
                   ) : (
                     <tr key={bet.transaction_id}>
                       <td>{new Date(bet.placed_at).toLocaleDateString()} <br />{new Date(bet.settled_at).toLocaleDateString()}</td>
-                      <td className={`${bet.status === 'lost' ? 'text-red fw-bold' : ''}`}>{bet.bet_amount}</td>
-                      <td className={`${bet.status === 'won' ? 'text-green fw-bold' : ''}`}>{`${bet.status === 'lost' ? '0.00' : bet.potential_payout}`}</td>
+                      <td className={`${bet.status === 'lost' ? 'text-red fw-bold' : bet.status === 'void' ? 'text-lightgreen' : ''}`}>{bet.bet_amount}</td>
+                      <td className={`${bet.status === 'won' ? 'text-green fw-bold' : bet.status === 'void' ? 'text-lightgreen' : ''}`}>{`${bet.status === 'lost' ? '0.00' : bet.status === "void" ? bet.bet_amount : bet.potential_payout}`}</td>
                       <td>
                         <span className='fst-italic'> {bet.fixture}</span> <br />
                         <span className='fst-italic '>{bet["bet_market"]}</span> <br />
                         <span className='fw-bold text-orange'> {bet["bet_type"]} </span>
                       </td>
                       <td className='badges'>
-                        <span className={`badge ${bet.status === 'pending' ? 'bg-secondary' : bet.status === 'won' ? 'bg-success' : 'bg-danger'}`}>&nbsp;</span>
+                        <span className={`badge ${bet.status === 'pending' ? 'bg-secondary' : bet.status === 'won' ? 'bg-success' : bet.status === 'void' ? 'bg-dark' : 'bg-danger'}`}>&nbsp;</span>
                       </td>
                     </tr>
                   )

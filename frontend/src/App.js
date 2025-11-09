@@ -266,7 +266,7 @@ function App() {
             </Route>
             <Route path = '/admin' element={
               role === null ? null : role ? (
-              <AdminDashboard user={user} setUser = {setUser} setRole={setRole}/>
+              <AdminDashboard user={user} setUser = {setUser} setRole={setRole} showAlert={showAlert} setShowAlert={setShowAlert} alertText={alertText} setAlertText={setAlertText} animationClass={animationClass} setAnimationClass={setAnimationClass}/>
             ) : (
               <Navigate to="/" replace />
             )

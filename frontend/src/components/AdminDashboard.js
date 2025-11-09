@@ -3,12 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';  
 import empty from "../images/Empty.png"
 
-export default function PendingBetsAdmin( {user, setUser, setRole} ) {
+export default function PendingBetsAdmin( {user, setUser, setRole, showAlert, setShowAlert, alertText, setAlertText, animationClass, setAnimationClass} ) {
   const [pendingBets, setPendingBets] = useState({});
   const [selectedWinners, setSelectedWinners] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [savedMarkets, setSavedMarkets] = useState({});
   const navigate = useNavigate();
+
+  const [confirmAction, setConfirmAction] = useState(null); 
+  // { type: 'save' | 'void', payload: { match_day, time, fixture, bet_market } }
+
+  
 
 
   useEffect(() => {
@@ -28,12 +33,14 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
         });
 
         const data = await response.json();
-        setRole(data.results[0]?.admin ?? false); 
-        if (!(data.results[0]?.admin ?? false)){
+        console.log({data})
+        setRole(data.user.admin ?? false); 
+        if (!(data.user.admin ?? false)){
           navigate("/");
         }
        } catch (error) {
-         console.error("Error getting wallet balance:", error);
+          console.error("Error getting user info:", error);
+          navigate("/");
        }
      };
    
@@ -89,19 +96,20 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
   }
 
   const handleCheckboxChange = (match_day, fixture, bet_market, bet_type) => {
-      setSelectedWinners((prev) => ({
-          ...prev,
-          [match_day]: {
-              ...prev[match_day],
-              [fixture]: {
-                  ...prev[match_day]?.[fixture],
-                  [bet_market]: {
-                      ...prev[match_day]?.[fixture]?.[bet_market],
-                      [bet_type]: !prev[match_day]?.[fixture]?.[bet_market]?.[bet_type]
-                  }
-              }
-          }
-      }));
+    console.log(selectedWinners)
+    setSelectedWinners((prev) => ({
+        ...prev,
+        [match_day]: {
+            ...prev[match_day],
+            [fixture]: {
+                ...prev[match_day]?.[fixture],
+                [bet_market]: {
+                    ...prev[match_day]?.[fixture]?.[bet_market],
+                    [bet_type]: !prev[match_day]?.[fixture]?.[bet_market]?.[bet_type]
+                }
+            }
+        }
+    }));
   };
   const submitMarketResults = async (match_day, time, fixture, bet_market) => {
     // Check if already saved or currently saving
@@ -162,7 +170,22 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
 
           const result = await response.json();
           if (result.success) {
-              alert('Results updated successfully!');
+              setAlertText(`<strong>Saved results successfully! </strong>`);
+              setShowAlert(true);
+
+              const fadeOutTimeout = setTimeout(() => {
+                setAnimationClass('alert-fade-out');
+              }, 2000);
+
+              const clearAlertTimeout = setTimeout(() => {
+                setShowAlert(false);
+                setAnimationClass('');
+              }, 2500);
+
+              return () => {
+                clearTimeout(fadeOutTimeout);
+                clearTimeout(clearAlertTimeout);
+              };
           } else {
               alert('Unauthorized access');
               navigate("/");
@@ -171,6 +194,69 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
           console.error("Error updating results:", error);
       }
   };
+
+  const voidMarket = async (match_day, time, fixture, bet_market) => {
+    // Immediately disable the button to prevent multiple clicks
+    setSavedMarkets((prev) => ({
+      ...prev,
+      [match_day]: {
+        ...(prev[match_day] || {}),
+        [fixture]: {
+          ...(prev[match_day]?.[fixture] || {}),
+          [bet_market]: true, // temporarily mark as saving
+        },
+      },
+    }));
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch('/api/void-bet-market', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ match_day, time, fixture, bet_market }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setAlertText(`<strong>Saved results successfully! </strong>`);
+        setShowAlert(true);
+
+        const fadeOutTimeout = setTimeout(() => {
+          setAnimationClass('alert-fade-out');
+        }, 2000);
+
+        const clearAlertTimeout = setTimeout(() => {
+          setShowAlert(false);
+          setAnimationClass('');
+        }, 2500);
+        
+         // Mark as 'saved' to disable further actions
+        setSavedMarkets(prev => ({
+          ...prev,
+          [match_day]: {
+            ...(prev[match_day] || {}),
+            [fixture]: {
+              ...(prev[match_day]?.[fixture] || {}),
+              [bet_market]: true,
+            }
+          }
+        }));
+
+        return () => {
+          clearTimeout(fadeOutTimeout);
+          clearTimeout(clearAlertTimeout);
+        };
+
+       
+      }
+    } catch (error) {
+      console.error("Error voiding market:", error);
+    }
+  };
+
+
   // Full mapping from full name → short name
   const teamMap = {
     // Premier League
@@ -309,115 +395,225 @@ export default function PendingBetsAdmin( {user, setUser, setRole} ) {
     const shortName = teamName.replace(/ /g, '-').toLowerCase()
     const fullName = getFullTeamName(shortName)
     const formattedName = fullName.replace(/ /g, '_'); 
-    console.log(formattedName)
     return `/images/${formattedName}.png`; 
   };
-    return (
-      <div>
-        <div className='col-lg-10 col-sm-12 m-auto'>
-          <div className='text-start text-white mt-4 mb-3 d-flex justify-content-between align-items-center'>
-            <div className='col-12'><h1>Users' Bets</h1></div>
-          </div>
-          <div className='bg-green shadow-down rounded pb-3 mb-5'>
-            <div className='col-12'>
-              <div className='col-12 row d-flex align-items-center justify-content-between'>
-                <div className="col-8 searchgroup text-end d-flex align-items-center">
-                  <span className="searchgroup-text" id="basic-addon1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
-                        fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                      </svg>
-                    </span>
-                  <input type="text" className='search' placeholder="Search team..." onChange={(e) => setSearchTerm(e.target.value.toLowerCase())} value={searchTerm} />
-                </div>
-                <div className='col-4 toggle d-flex justify-content-end align-items-center m-0 text-lightgrey pe-0 font-12 fw-bold' data-bs-toggle="tooltip" data-bs-placement="top" title="Change to odds to %">
-          
-                </div>
-              </div>
-              <div className='match-list'>
-              { !isEmpty(pendingBets) ? (
-                Object.entries(pendingBets).map(([match_day, fixtures]) => (
-                  <div key={match_day} className="date-group">
-                    <div className='text-uppercase text-lightgrey col-12 bg-lightgreen text-start date matchMargin py-2'>
-                    {match_day}
-                    </div>
-                    {Object.entries(fixtures)
-                          .filter(([fixture]) => fixture.toLowerCase().includes(searchTerm)) // Filter fixtures based on search
-                          .map(([fixture, details]) => (
-                      <div key={fixture} className='match'>
-                        <div className='matchMargin text-start'>
-                        <div className='text-lightgrey py-2 font-12 d-flex justify-content-between align-items-center'>
-                          <div className='d-flex justify-content-start py-1 text-white fw-bold font-15'>
-                          <div>
-                            <img 
-                              src = {getImagePath(fixture.split(" v ")[0])}
-                              alt={fixture.split(" v ")[0]} 
-                              className="team-logo me-1"/>
-                            {fixture.split(" v ")[0]}
-                          </div>
-                          <div className='mx-3'> - </div>
-                          <div>
-                            {fixture.split(" v ")[1]}
-                            <img 
-                              src = {getImagePath(fixture.split(" v ")[1])}
-                              alt={fixture.split(" v ")[1]} 
-                              className="team-logo ms-1"/>
-                          </div>
-                          </div> 
-                          <div>{details.time}</div>
-                        </div> 
-                        <div className="row">
 
-                        {Object.entries(details.markets).map(([bet_market, bet_types]) => {
-                        const isSaved = savedMarkets[match_day]?.[fixture]?.[bet_market] || false;
-                        
-                        return (
-                          <div key={bet_market} className="col-12 col-sm-6 col-md-6 col-lg-3 mb-3">
-                            <div className="bet-card p-3 shadow-sm">
-                              <div className='d-flex justify-content-between align-items-center'>
-                                <div className='text-white font-15'>{bet_market}</div>
+  const winningList = confirmAction?.payload?.selectedTypes?.length > 0
+    ? confirmAction.payload.selectedTypes.join(", ")
+    : "None";
+
+  return (
+    <div>
+      <div className='col-lg-10 col-sm-12 m-auto'>
+        <div className='text-start text-white mt-4 mb-3 d-flex justify-content-between align-items-center'>
+          <div className='col-12'><h1>Users' Bets</h1></div>
+        </div>
+        <div className='bg-green shadow-down rounded pb-3 mb-5'>
+          <div className='col-12'>
+            <div className='col-12 row d-flex align-items-center justify-content-between'>
+              <div className="col-8 searchgroup text-end d-flex align-items-center">
+                <span className="searchgroup-text" id="basic-addon1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                      fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
+                      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                    </svg>
+                  </span>
+                <input type="text" className='search' placeholder="Search team..." onChange={(e) => setSearchTerm(e.target.value.toLowerCase())} value={searchTerm} />
+              </div>
+              <div className='col-4 toggle d-flex justify-content-end align-items-center m-0 text-lightgrey pe-0 font-12 fw-bold' data-bs-toggle="tooltip" data-bs-placement="top" title="Change to odds to %">
+        
+              </div>
+            </div>
+            <div className='match-list'>
+            { !isEmpty(pendingBets) ? (
+              Object.entries(pendingBets).map(([match_day, fixtures]) => (
+                <div key={match_day} className="date-group">
+                  <div className='text-uppercase text-lightgrey col-12 bg-lightgreen text-start date matchMargin py-2'>
+                  {match_day}
+                  </div>
+                  {Object.entries(fixtures)
+                        .filter(([fixture]) => fixture.toLowerCase().includes(searchTerm)) // Filter fixtures based on search
+                        .map(([fixture, details]) => (
+                    <div key={fixture} className='match'>
+                      <div className='matchMargin text-start'>
+                      <div className='text-lightgrey py-2 font-12 d-flex justify-content-between align-items-center'>
+                        <div className='d-flex justify-content-start py-1 text-white fw-bold font-15'>
+                        <div>
+                          <img 
+                            src = {getImagePath(fixture.split(" v ")[0])}
+                            alt={fixture.split(" v ")[0]} 
+                            className="team-logo me-1"/>
+                          {fixture.split(" v ")[0]}
+                        </div>
+                        <div className='mx-3'> - </div>
+                        <div>
+                          {fixture.split(" v ")[1]}
+                          <img 
+                            src = {getImagePath(fixture.split(" v ")[1])}
+                            alt={fixture.split(" v ")[1]} 
+                            className="team-logo ms-1"/>
+                        </div>
+                        </div> 
+                        <div>{details.time}</div>
+                      </div> 
+                      <div className="row">
+
+                      {Object.entries(details.markets).map(([bet_market, bet_types]) => {
+                      const isSaved = savedMarkets[match_day]?.[fixture]?.[bet_market] || false;
+                      return (
+                        <div key={bet_market} className="col-12 col-sm-6 col-md-6 col-lg-3 mb-3">
+                          <div className="bet-card p-3 shadow-sm">
+                            <div className='d-flex justify-content-between align-items-center'>
+                              <div className='text-white font-15'>{bet_market}</div>
                                 <div>
-                                  <div 
-                                    onClick={() => submitMarketResults(match_day, details.time, fixture, bet_market)}
-                                    className={`rounded px-2 py-1 text-center oddsClicked odds-content fw-bold ${isSaved ? 'text-muted' : 'text-blue'}`}
+                                  {/* SAVE Button */}
+                                  <div
+                                    onClick={() => {
+                                      const selectedTypesArray = Object.entries(selectedWinners[match_day]?.[fixture]?.[bet_market] || {})
+                                        .filter(([_, isSelected]) => isSelected)
+                                        .map(([type]) => type);
+
+                                        return !isSaved && setConfirmAction({
+                                        type: 'save',
+                                        payload: { match_day, 'time': details.time, fixture, bet_market, selectedTypes: selectedTypesArray }
+                                      });
+                                    }}
+                                    className={`mb-1 rounded px-2 py-1 text-center oddsClicked odds-content fw-bold ${isSaved ? 'text-muted' : 'text-blue'}`}
                                     style={{ cursor: isSaved ? 'not-allowed' : 'pointer', opacity: isSaved ? 0.5 : 1 }}
                                   >
                                     {isSaved ? "SAVED" : "SAVE"}
                                   </div>
-                                </div>
-                              </div>
 
-                              {bet_types.map((bet_type) => (
-                                <label key={bet_type} className='d-flex align-items-center font-12 text-grey fw-normal my-2'>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedWinners[match_day]?.[fixture]?.[bet_market]?.[bet_type] || false}
-                                    onChange={() => handleCheckboxChange(match_day, fixture, bet_market, bet_type)}
-                                    className='me-2'
-                                    disabled={isSaved} 
-                                  />
-                                  {bet_type}
-                                </label>
-                              ))}
+                                  {/* VOID Button */}
+                                  <div
+                                    onClick={() => {
+                                      const selectedTypesArray = Object.entries(selectedWinners[match_day]?.[fixture]?.[bet_market] || {})
+                                        .filter(([_, isSelected]) => isSelected)
+                                        .map(([type]) => type);
+
+                                      return !isSaved && setConfirmAction({
+                                        type: 'void',
+                                        payload: { match_day, 'time': details.time, fixture, bet_market, selectedTypes: selectedTypesArray }
+                                      });
+                                    }}
+                                    className={`mt-1 rounded px-2 py-1 text-center fw-bold ${isSaved ? 'text-muted' : 'bg-danger text-white'}`}
+                                    style={{ cursor: isSaved ? 'not-allowed' : 'pointer', opacity: isSaved ? 0.5 : 1 }}
+                                  >
+                                    VOID
+                                  </div>
+                              </div>
                             </div>
+
+                            {bet_types.map((bet_type) => (
+                              <label key={bet_type} className='d-flex align-items-center font-12 text-grey fw-normal my-2'>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedWinners[match_day]?.[fixture]?.[bet_market]?.[bet_type] || false}
+                                  onChange={() => handleCheckboxChange(match_day, fixture, bet_market, bet_type)}
+                                  className='me-2'
+                                  disabled={isSaved} 
+                                />
+                                {bet_type}
+                              </label>
+                            ))}
                           </div>
-                        );
-                      })}
                         </div>
+                      );
+                    })}
                       </div>
-                      </div>
-                    ))}
-                  </div>
-                ))) :
-                (<div className='m-auto text-center mt-5'> 
-                <p className='text-white'><em>No pending bets...</em></p>
-                <img src = {empty} height="150px" alt='Empty...' />
-                </div>)
-              }  
-              </div>
+                    </div>
+                    </div>
+                  ))}
+                </div>
+              ))) :
+              (<div className='m-auto text-center mt-5'> 
+              <p className='text-white'><em>No pending bets...</em></p>
+              <img src = {empty} height="150px" alt='Empty...' />
+              </div>)
+            }  
             </div>
-          </div>      
-        </div>
+          </div>
+        </div>      
       </div>
-    );
+      {confirmAction && (
+        
+        <div className="modal fade show" style={{ display: "block", background: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              
+              <div className="modal-header bg-green text-white modal-head">
+                <h5 className="modal-title fw-bold">
+                  {confirmAction.type === 'save' ? (<>Confirm <span className='text-orange'>Save</span> Market</>) : (<>Confirm <span className='text-red'>Void</span> Market</>)}
+                </h5>
+                <button className="btn-close" onClick={() => setConfirmAction(null)}></button>
+              </div>
+
+              <div className="modal-body bg-green text-white">
+                {confirmAction.type === 'save' ? (
+                  <>
+                    <div className='fw-bold'>{confirmAction.payload.fixture} - {confirmAction.payload.bet_market}</div>
+                    <div>{confirmAction.payload.match_day} {confirmAction.payload.time}</div>
+
+                    <div className="mt-3">
+                      <strong>Selected Winning Bet Type:</strong>
+                      <div className="text-orange">{winningList}</div>
+                    </div>
+
+                    <div className="mt-3">
+                      Are you sure you want to <span className='fw-bold text-orange'>save</span> this market? <br />
+                      This will apply the winners permanently.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className='fw-bold'>{confirmAction.payload.fixture} - {confirmAction.payload.bet_market}</div>
+                    <div>{confirmAction.payload.match_day} {confirmAction.payload.time}</div>
+                    <div className="mt-3">
+                      Are you sure you want to <span className='fw-bold text-red'>void</span> this market? <br />
+                      All bets will be refunded.
+                    </div>
+                  </>
+                ) }
+              </div>
+
+              <div className="modal-footer bg-green border-top-0 justify-content-end pt-0 pb-3">
+                <button className="mt-1 btn border fw-bold text-white p-2" onClick={() => setConfirmAction(null)}>Cancel</button>
+
+                <button
+                  className={`mt-1 btn text-white fw-bold p-2 ${confirmAction.type === 'save' ? 'btn-prim' : 'btn-danger'}`}
+                  onClick={() => {
+                    const { match_day, time, fixture, bet_market } = confirmAction.payload;
+                    setConfirmAction(null);
+
+                    if (confirmAction.type === 'save') {
+                      submitMarketResults(match_day, time, fixture, bet_market);
+                    } else {
+                      voidMarket(match_day, time, fixture, bet_market);
+                    }
+                  }}
+                >
+                  Confirm
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+      <div className='alertsBox'>
+        {showAlert && (
+          <div
+            className={`alert ${
+              alertText.includes("Error")
+                ? "alert-danger"
+                : "alert-success"
+            } fade show ${animationClass}`}
+            role="alert"
+            dangerouslySetInnerHTML={{ __html: alertText }}
+          ></div>
+        )}
+      </div>
+
+    </div>
+  );
 }
