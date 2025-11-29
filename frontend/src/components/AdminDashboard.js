@@ -437,23 +437,32 @@ export default function PendingBetsAdmin( {user, setUser, setRole, showAlert, se
                     <div key={fixture} className='match'>
                       <div className='matchMargin text-start'>
                       <div className='text-lightgrey py-2 font-12 d-flex justify-content-between align-items-center'>
-                        <div className='d-flex justify-content-start py-1 text-white fw-bold font-15'>
-                        <div>
-                          <img 
-                            src = {getImagePath(fixture.split(" v ")[0])}
-                            alt={fixture.split(" v ")[0]} 
-                            className="team-logo me-1"/>
-                          {fixture.split(" v ")[0]}
+                        <div className='d-flex justify-content-start py-1 text-white fw-bold font-15 align-items-center'>
+
+                          {/* HOME TEAM */}
+                          <div className="d-flex align-items-center team-wrap">
+                            <img 
+                              src={getImagePath(fixture.split(" v ")[0])}
+                              alt={fixture.split(" v ")[0]}
+                              className="team-logo me-1"
+                            />
+                            <span>{fixture.split(" v ")[0]}</span>
+                          </div>
+
+                          <div className='mx-3'> - </div>
+
+                          {/* AWAY TEAM */}
+                          <div className="d-flex align-items-center team-wrap">
+                            <span>{fixture.split(" v ")[1]}</span>
+                            <img 
+                              src={getImagePath(fixture.split(" v ")[1])}
+                              alt={fixture.split(" v ")[1]}
+                              className="team-logo ms-1"
+                            />
+                          </div>
+
                         </div>
-                        <div className='mx-3'> - </div>
-                        <div>
-                          {fixture.split(" v ")[1]}
-                          <img 
-                            src = {getImagePath(fixture.split(" v ")[1])}
-                            alt={fixture.split(" v ")[1]} 
-                            className="team-logo ms-1"/>
-                        </div>
-                        </div> 
+
                         <div>{details.time}</div>
                       </div> 
                       <div className="row">

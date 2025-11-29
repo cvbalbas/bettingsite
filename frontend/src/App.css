@@ -155,6 +155,11 @@ h1 {
   margin-right: 5px;
 }
 
+.team-wrap {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
 
 
 .odds {

@@ -537,7 +537,7 @@ function filterBets(betHistory){
                       </div>
                     </th>                    
                     <th>Bet Amount</th>
-                    <th>Payout</th>
+                    <th>Profit</th>
                     <th style={{width: '50%'}}>Bet Type</th>
                     <th></th>
                   </tr>
@@ -548,7 +548,7 @@ function filterBets(betHistory){
                     <tr key={bet.bet_id}>
                       <td>{new Date(bet.placed_at).toLocaleString().split(",")[0]} <br/> -</td>
                       <td>{bet.bet_amount}</td>
-                      <td>{bet.potential_payout}</td>
+                      <td>{bet.potential_payout - bet.bet_amount}</td>
                       <td><span className='fst-italic'> {bet.fixture}</span> <br/> <span className='fst-italic '>{bet["bet_market"]}</span> <br/> <span className='fw-bold text-orange'> {bet["bet_type"]} </span></td>
                       <td className='badges'> <span className={`badge ${
                         bet.status === 'pending'
@@ -562,8 +562,8 @@ function filterBets(betHistory){
                   ) : (
                     <tr key={bet.transaction_id}>
                       <td>{new Date(bet.placed_at).toLocaleDateString()} <br />{new Date(bet.settled_at).toLocaleDateString()}</td>
-                      <td className={`${bet.status === 'lost' ? 'text-red fw-bold' : bet.status === 'void' ? 'text-lightgreen' : ''}`}>{bet.bet_amount}</td>
-                      <td className={`${bet.status === 'won' ? 'text-green fw-bold' : bet.status === 'void' ? 'text-lightgreen' : ''}`}>{`${bet.status === 'lost' ? '0.00' : bet.status === "void" ? bet.bet_amount : bet.potential_payout}`}</td>
+                      <td className=''>{bet.bet_amount}</td>
+                      <td className={`${bet.status === 'won' ? 'text-green fw-bold' : bet.status === 'void' ? 'text-lightgreen' : 'text-red  fw-bold'}`}>{`${bet.status === 'lost' ? '-'+bet.bet_amount : bet.status === "void" ? '0.00' : '+'+(bet.potential_payout - bet.bet_amount)}`}</td>
                       <td>
                         <span className='fst-italic'> {bet.fixture}</span> <br />
                         <span className='fst-italic '>{bet["bet_market"]}</span> <br />
@@ -598,7 +598,7 @@ function filterBets(betHistory){
                       </div>
                     </th>                    
                     <th>Bet Amount</th>
-                    <th>Payout</th>
+                    <th>Profit</th>
                     <th>Bet Type</th>
                     <th></th>
                   </tr>
